@@ -1,28 +1,18 @@
-import { View, StyleSheet, ActivityIndicator, ImageBackground } from "react-native";
-import * as Animatable from "react-native-animatable";
+import { View, ActivityIndicator, ImageBackground, StyleSheet } from "react-native";
+import { estilosGlobais } from "../styles/estilosGlobais";
 
 export default function TelaCarregamento() {
   return (
     <ImageBackground
-      source={require("../assets/fundo.jpg")} // Imagem de fundo
-      style={estilos.container}
+      source={require("../assets/fundo.jpg")}
+      style={StyleSheet.absoluteFill}
       resizeMode="cover"
     >
-      <ActivityIndicator size="large" color="#E63946" />
+      <View style={estilosGlobais.fundoComOverlay}>
+        <View style={estilosGlobais.containerCentralizado}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      </View>
     </ImageBackground>
   );
 }
-
-const estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  logo: {
-    width: 180,
-    height: 180,
-    marginBottom: 30,
-  },
-});

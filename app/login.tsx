@@ -1,76 +1,86 @@
-import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
-import { Link } from "expo-router";
+import { useState, useEffect } from "react";
+import { View, Text, TextInput, Alert, ImageBackground, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
+import TelaCarregamento from "../components/TelaCarregamento";
+import { estilosGlobais } from "../styles/estilosGlobais";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(true);
+  let [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
 
-  const handleLogin = () => {
-    if (username !== "admin" || password !== "1234") {
+  useEffect(() => {
+    const timeout = setTimeout(() => setCarregando(false), 1000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (carregando || !fontesCarregadas) return <TelaCarregamento />;
+
+  const realizarLogin = () => {
+    if (usuario === "admin" && senha === "1234") {
+      router.push({
+        pathname: "/(interno)",
+        params: { usuario },
+      });
+    } else {
       Alert.alert("Erro", "Usuário ou senha inválidos");
     }
-    // A navegação será feita com o Link abaixo (não é automática aqui)
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login do Funcionário</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Usuário"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Link
-        href="/(interno)"
-        asChild
-        onPress={(e) => {
-          if (username !== "admin" || password !== "1234") {
-            e.preventDefault(); // impede a navegação
-            Alert.alert("Erro", "Usuário ou senha inválidos");
-          }
-        }}
-      >
-        <Text style={styles.loginButton}>Entrar</Text>
-      </Link>
-    </View>
+    <ImageBackground
+      source={require("../assets/fundo.jpg")}
+      style={StyleSheet.absoluteFill}
+      resizeMode="cover"
+    >
+      <View style={estilosGlobais.fundoComOverlay}>
+        <View style={estilosGlobais.containerCentralizado}>
+          <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Usuário"
+            placeholderTextColor="#999"
+            value={usuario}
+            onChangeText={setUsuario}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#999"
+            secureTextEntry
+            value={senha}
+            onChangeText={setSenha}
+          />
+
+          <Text style={styles.loginButton} onPress={realizarLogin}>
+            Entrar
+          </Text>
+        </View>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 30,
-    textAlign: "center",
-  },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    backgroundColor: "#fff",
+    borderRadius: 10,
     padding: 10,
     marginBottom: 15,
+    fontSize: 12,
+    fontFamily: "PressStart2P_400Regular",
   },
   loginButton: {
-    backgroundColor: "#2A9D8F",
-    color: "#fff",
+    backgroundColor: "#fff",
+    color: "#e63946",
     textAlign: "center",
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     fontWeight: "bold",
-    fontSize: 16,
+    fontFamily: "PressStart2P_400Regular",
+    fontSize: 10,
   },
 });
