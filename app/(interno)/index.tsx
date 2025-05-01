@@ -12,7 +12,7 @@ export default function AreaInterna() {
   if (!fontesCarregadas) return <TelaCarregamento />;
 
   const opcoes = [
-    { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro" },
+    { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro-check" },
     { titulo: "Lista de Espera", rota: "/(interno)/espera" },
     { titulo: "Consultas em Andamento", rota: "/(interno)/consultas" },
     { titulo: "Cadastro Urgente", rota: "/(interno)/urgente" },
@@ -21,7 +21,7 @@ export default function AreaInterna() {
   return (
     <ImageBackground
       source={require("../../assets/fundo.jpg")}
-      style={StyleSheet.absoluteFill}
+      style={{ flex: 1, width: "100%", height: "100%" }}
       resizeMode="cover"
     >
       <View style={estilosGlobais.fundoComOverlay}>
