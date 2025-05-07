@@ -1,8 +1,8 @@
-// Tela melhorada de busca por ID do treinador com visual de Pokémon
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Image, FlatList, TouchableOpacity, ImageBackground, Alert } from "react-native";
+import { View, Text, TextInput, StyleSheet, Image, FlatList, TouchableOpacity, ImageBackground, Alert, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
+import { router } from "expo-router";
 
 export default function BuscarID() {
   const [idTreinador, setIdTreinador] = useState("");
@@ -29,11 +29,21 @@ export default function BuscarID() {
 
   return (
     <ImageBackground
-      source={require("../../assets/fundo.jpg")}
+      source={require("../../../assets/fundo.jpg")}
       style={StyleSheet.absoluteFill}
       resizeMode="cover"
     >
-      <View style={estilosGlobais.fundoComOverlay}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+              <View style={estilosGlobais.topBar}>
+                <TouchableOpacity onPress={() => router.push("/(interno)/cadastro/cadastro-check")}>
+                  <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.replace("/login")}> 
+                  <Text style={estilosGlobais.linkTopo}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+              
+      <View>
         <View style={estilosGlobais.containerCentralizado}>
           <Text style={[estilosGlobais.titulo, { fontSize: 14, marginBottom: 20 }]}>Buscar Pokémon por ID do Treinador</Text>
 
@@ -61,14 +71,14 @@ export default function BuscarID() {
                   <Text style={styles.texto}>Espécie: {item.especiePokemon}</Text>
                   <Text style={styles.texto}>Data de captura: {item.dataCaptura}</Text>
                   <Text style={styles.texto}>Treinador: {item.nomeTreinador || "-"}</Text>
-                  <Text style={styles.texto}>ID: {item.idTreinador}</Text>
-                  {item.descricao ? <Text style={styles.texto}>"{item.descricao}"</Text> : null}
+                  <Text style={styles.texto}>ID Treinador: {item.idTreinador}</Text>
                 </View>
               )}
             />
           )}
         </View>
       </View>
+      </ScrollView>
     </ImageBackground>
   );
 }

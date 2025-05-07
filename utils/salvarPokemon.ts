@@ -9,6 +9,7 @@ export type PokemonCadastro = {
   nomeTreinador: string;
   idTreinador: string;
   descricao: string;
+  imagem?: string;
 };
 
 export async function salvarPokemon(pokemon: PokemonCadastro): Promise<{ sucesso: boolean }> {

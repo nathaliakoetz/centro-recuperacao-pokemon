@@ -12,42 +12,42 @@ export default function AreaInterna() {
   if (!fontesCarregadas) return <TelaCarregamento />;
 
   const opcoes = [
-    { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro-check" },
-    { titulo: "Lista de Espera", rota: "/(interno)/espera" },
-    { titulo: "Consultas em Andamento", rota: "/(interno)/consultas" },
-    { titulo: "Cadastro Urgente", rota: "/(interno)/urgente" },
+    { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro/cadastro-check" },
+    { titulo: "Lista de Espera", rota: "/(interno)/consulta/espera" },
+    { titulo: "Consultas em Andamento", rota: "/(interno)/consulta/consultas" },
+    { titulo: "Cadastro Urgente", rota: "/(interno)/urgente/urgente" },
   ] as const;
 
   return (
     <ImageBackground
-      source={require("../../assets/fundo.jpg")}
+      source={require("../../../assets/fundo.jpg")}
       style={estilosGlobais.fundoComOverlay}
       resizeMode="cover"
     >
-       <ScrollView contentContainerStyle={estilosGlobais.scroll}>
-              <View style={estilosGlobais.topBar}>
-                <TouchableOpacity onPress={() => router.push("/login")}>
-                  <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
-                </TouchableOpacity>
-              </View>
-
-      <View style={estilosGlobais.fundoComOverlay}>
-        <View style={estilosGlobais.containerCentralizado}>
-          <Text style={[estilosGlobais.titulo, { fontSize: 16, marginBottom: 30 }]}>
-            Bem-vindo, {usuario}!
-          </Text>
-
-          {opcoes.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={estilos.card}
-              onPress={() => router.push(item.rota)}
-            >
-              <Text style={estilos.cardTexto}>{item.titulo}</Text>
-            </TouchableOpacity>
-          ))}
+      <ScrollView contentContainerStyle={estilosGlobais.scroll}>
+        <View style={estilosGlobais.topBar}>
+          <TouchableOpacity onPress={() => router.push("/login")}>
+            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+
+        <View>
+          <View style={estilosGlobais.containerCentralizado}>
+            <Text style={[estilosGlobais.titulo, { fontSize: 16, marginBottom: 30 }]}>
+              Bem-vindo, {usuario}!
+            </Text>
+
+            {opcoes.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={estilos.card}
+                onPress={() => router.push(item.rota)}
+              >
+                <Text style={estilos.cardTexto}>{item.titulo}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </ImageBackground>
   );

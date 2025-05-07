@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, Alert, ImageBackground, StyleSheet } from "react-native";
+import { View, Text, TextInput, Alert, ImageBackground, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
+import * as Animatable from "react-native-animatable";
 import TelaCarregamento from "../components/TelaCarregamento";
 import { estilosGlobais } from "../styles/estilosGlobais";
 
@@ -11,6 +12,7 @@ export default function Login() {
   const [codigoGerado, setCodigoGerado] = useState("");
   const [codigoDigitado, setCodigoDigitado] = useState("");
   const [segundaEtapa, setSegundaEtapa] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
   const [carregando, setCarregando] = useState(true);
 
   let [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
@@ -23,10 +25,10 @@ export default function Login() {
   if (carregando || !fontesCarregadas) return <TelaCarregamento />;
 
   const gerarCodigo = () => {
-    const codigo = Math.floor(1000 + Math.random() * 9000).toString(); // Ex: 4 dígitos
+    const codigo = Math.floor(1000 + Math.random() * 9000).toString();
     setCodigoGerado(codigo);
     setSegundaEtapa(true);
-    Alert.alert("Código de verificação", `Seu código é: ${codigo}`);
+    setModalVisivel(true); // mostra o modal
   };
 
   const verificarCredenciais = () => {
@@ -38,8 +40,13 @@ export default function Login() {
   };
 
   const verificarCodigo = () => {
-    if (codigoDigitado === codigoGerado) {
-      router.push({ pathname: "/(interno)", params: { usuario } });
+    if (!codigoDigitado.trim()) {
+      Alert.alert("Atenção", "Digite o código recebido.");
+      return;
+    }
+
+    if (parseInt(codigoDigitado) === parseInt(codigoGerado)) {
+      router.push({ pathname: "/(interno)/tela-inicial", params: { usuario } });
     } else {
       Alert.alert("Erro", "Código de verificação incorreto");
     }
@@ -95,6 +102,26 @@ export default function Login() {
             </>
           )}
         </View>
+
+        {/* Modal do código */}
+        <Modal transparent visible={modalVisivel} animationType="fade">
+          <View style={styles.modalFundo}>
+            <Animatable.View
+              animation="bounceIn"
+              duration={1000}
+              style={styles.modalConteudo}
+            >
+              <Text style={styles.modalTitulo}>Código de Verificação</Text>
+              <Text style={styles.modalCodigo}>{codigoGerado}</Text>
+              <TouchableOpacity
+                onPress={() => setModalVisivel(false)}
+                style={styles.botaoFechar}
+              >
+                <Text style={styles.botaoFecharTexto}>Fechar</Text>
+              </TouchableOpacity>
+            </Animatable.View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );
@@ -116,6 +143,44 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     fontWeight: "bold",
+    fontFamily: "PressStart2P_400Regular",
+    fontSize: 10,
+  },
+  modalFundo: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalConteudo: {
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 20,
+    alignItems: "center",
+    width: "30%",
+  },
+  modalTitulo: {
+    fontSize: 14,
+    marginBottom: 10,
+    fontFamily: "PressStart2P_400Regular",
+    textAlign: "center",
+    color: "#2a9d8f",
+  },
+  modalCodigo: {
+    fontSize: 24,
+    color: "#e63946",
+    marginBottom: 20,
+    fontWeight: "bold",
+    fontFamily: "PressStart2P_400Regular",
+  },
+  botaoFechar: {
+    backgroundColor: "#2a9d8f",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  botaoFecharTexto: {
+    color: "#fff",
     fontFamily: "PressStart2P_400Regular",
     fontSize: 10,
   },

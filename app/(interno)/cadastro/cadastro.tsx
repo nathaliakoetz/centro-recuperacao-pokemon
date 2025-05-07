@@ -78,7 +78,9 @@ export default function Cadastro() {
       nomeTreinador,
       idTreinador,
       descricao,
+      imagem: imagemPokemon,
     });
+    
 
     if (resultado.sucesso) {
       alert("Pokémon cadastrado com sucesso!");
@@ -101,10 +103,12 @@ export default function Cadastro() {
   if (!fontesCarregadas) return <TelaCarregamento />;
 
   return (
-    <ImageBackground source={require("../../assets/fundo.jpg")} style={estilosGlobais.fundoComOverlay} resizeMode="cover">
+    <ImageBackground source={require("../../../assets/fundo.jpg")} 
+    style={estilosGlobais.fundoComOverlay} resizeMode="cover">
+
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(interno)")}>
+          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
             <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.replace("/login")}> 

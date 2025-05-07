@@ -5,13 +5,13 @@ import { estilosGlobais } from "../../../styles/estilosGlobais";
 export default function CadastroCheck() {
   return (
     <ImageBackground
-      source={require("../../assets/fundo.jpg")}
+      source={require("../../../assets/fundo.jpg")}
       style={estilosGlobais.fundoComOverlay}
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={estilosGlobais.scroll}>
         <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(interno)")}>
+          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
             <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.replace("/login")}>
@@ -28,12 +28,12 @@ export default function CadastroCheck() {
           <View style={styles.botoes}>
             <Button
               title="Sim"
-              onPress={() => router.push("/(interno)/buscar-id")}
+              onPress={() => router.push("/(interno)/cadastro/buscar-id")}
               color="#2a9d8f"
             />
             <Button
               title="Não"
-              onPress={() => router.push("/(interno)/cadastro")}
+              onPress={() => router.push("/(interno)/cadastro/cadastro")}
               color="#e63946"
             />
           </View>
