@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Button, ImageBackground, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { estilosGlobais } from "../../styles/estilosGlobais";
+import { estilosGlobais } from "../../../styles/estilosGlobais";
 
 export default function CadastroCheck() {
   return (

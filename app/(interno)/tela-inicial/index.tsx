@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
-import TelaCarregamento from "../../components/TelaCarregamento";
-import { estilosGlobais } from "../../styles/estilosGlobais";
+import TelaCarregamento from "../../../components/TelaCarregamento";
+import { estilosGlobais } from "../../../styles/estilosGlobais";
 
 export default function AreaInterna() {
   const { usuario } = useLocalSearchParams();
@@ -24,6 +24,13 @@ export default function AreaInterna() {
       style={estilosGlobais.fundoComOverlay}
       resizeMode="cover"
     >
+       <ScrollView contentContainerStyle={estilosGlobais.scroll}>
+              <View style={estilosGlobais.topBar}>
+                <TouchableOpacity onPress={() => router.push("/login")}>
+                  <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+                </TouchableOpacity>
+              </View>
+
       <View style={estilosGlobais.fundoComOverlay}>
         <View style={estilosGlobais.containerCentralizado}>
           <Text style={[estilosGlobais.titulo, { fontSize: 16, marginBottom: 30 }]}>
@@ -41,6 +48,7 @@ export default function AreaInterna() {
           ))}
         </View>
       </View>
+      </ScrollView>
     </ImageBackground>
   );
 }

@@ -8,7 +8,11 @@ import { estilosGlobais } from "../styles/estilosGlobais";
 export default function Login() {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
+  const [codigoGerado, setCodigoGerado] = useState("");
+  const [codigoDigitado, setCodigoDigitado] = useState("");
+  const [segundaEtapa, setSegundaEtapa] = useState(false);
   const [carregando, setCarregando] = useState(true);
+
   let [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
 
   useEffect(() => {
@@ -18,14 +22,26 @@ export default function Login() {
 
   if (carregando || !fontesCarregadas) return <TelaCarregamento />;
 
-  const realizarLogin = () => {
+  const gerarCodigo = () => {
+    const codigo = Math.floor(1000 + Math.random() * 9000).toString(); // Ex: 4 dígitos
+    setCodigoGerado(codigo);
+    setSegundaEtapa(true);
+    Alert.alert("Código de verificação", `Seu código é: ${codigo}`);
+  };
+
+  const verificarCredenciais = () => {
     if (usuario === "admin" && senha === "1234") {
-      router.push({
-        pathname: "/(interno)",
-        params: { usuario },
-      });
+      gerarCodigo();
     } else {
       Alert.alert("Erro", "Usuário ou senha inválidos");
+    }
+  };
+
+  const verificarCodigo = () => {
+    if (codigoDigitado === codigoGerado) {
+      router.push({ pathname: "/(interno)", params: { usuario } });
+    } else {
+      Alert.alert("Erro", "Código de verificação incorreto");
     }
   };
 
@@ -39,25 +55,45 @@ export default function Login() {
         <View style={estilosGlobais.containerCentralizado}>
           <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Usuário"
-            placeholderTextColor="#999"
-            value={usuario}
-            onChangeText={setUsuario}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor="#999"
-            secureTextEntry
-            value={senha}
-            onChangeText={setSenha}
-          />
+          {!segundaEtapa && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Usuário"
+                placeholderTextColor="#999"
+                value={usuario}
+                onChangeText={setUsuario}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Senha"
+                placeholderTextColor="#999"
+                secureTextEntry
+                value={senha}
+                onChangeText={setSenha}
+              />
+              <Text style={styles.loginButton} onPress={verificarCredenciais}>
+                Próximo
+              </Text>
+            </>
+          )}
 
-          <Text style={styles.loginButton} onPress={realizarLogin}>
-            Entrar
-          </Text>
+          {segundaEtapa && (
+            <>
+              <Text style={estilosGlobais.label}>Digite o código recebido</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: 1234"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                value={codigoDigitado}
+                onChangeText={setCodigoDigitado}
+              />
+              <Text style={styles.loginButton} onPress={verificarCodigo}>
+                Verificar
+              </Text>
+            </>
+          )}
         </View>
       </View>
     </ImageBackground>
