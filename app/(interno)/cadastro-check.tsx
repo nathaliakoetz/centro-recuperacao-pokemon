@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button, ImageBackground } from "react-native";
+import { View, Text, StyleSheet, Button, ImageBackground, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { estilosGlobais } from "../../styles/estilosGlobais";
 
@@ -6,11 +6,22 @@ export default function CadastroCheck() {
   return (
     <ImageBackground
       source={require("../../assets/fundo.jpg")}
-      style={StyleSheet.absoluteFill}
+      style={estilosGlobais.fundoComOverlay}
       resizeMode="cover"
     >
-      <View style={estilosGlobais.fundoComOverlay}>
-        <View style={estilosGlobais.containerCentralizado}>
+      <ScrollView contentContainerStyle={estilosGlobais.scroll}>
+        <View style={estilosGlobais.topBar}>
+          <TouchableOpacity onPress={() => router.push("/(interno)")}>
+            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.replace("/login")}>
+            <Text style={estilosGlobais.linkTopo}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      
+
+      <View >
+        <View style={estilosGlobais.containerCentralPadding}>
           <Text style={[estilosGlobais.titulo, { fontSize: 14, marginBottom: 30 }]}>
             O Pokémon já está cadastrado?
           </Text>
@@ -28,6 +39,7 @@ export default function CadastroCheck() {
           </View>
         </View>
       </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
