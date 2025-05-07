@@ -8,10 +8,6 @@ export interface DadosPokemon {
   urlImagem: string;
 }
 
-/**
- * Busca dados completos de um Pokémon a partir do nome da espécie.
- * Inclui nome em português, tipos em português e imagem oficial.
- */
 export async function buscarDadosPorEspecie(especie: string): Promise<DadosPokemon | null> {
   try {
     // Requisições principais

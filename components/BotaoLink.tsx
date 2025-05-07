@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   texto: {
     color: "#e63946",
     fontFamily: "PressStart2P_400Regular",
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "bold",
     textAlign: "center",
   },

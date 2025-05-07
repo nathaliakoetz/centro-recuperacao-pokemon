@@ -9,13 +9,16 @@ export type PokemonCadastro = {
   nomeTreinador: string;
   idTreinador: string;
   descricao: string;
+  imagem?: string;
 };
 
-export async function salvarPokemon(pokemon: PokemonCadastro) {
+export async function salvarPokemon(pokemon: PokemonCadastro): Promise<{ sucesso: boolean }> {
   try {
+    if (!pokemon.idTreinador) throw new Error("ID do treinador inválido.");
+
     const chave = `pokemons:${pokemon.idTreinador}`;
     const dadosAnteriores = await AsyncStorage.getItem(chave);
-    const pokemons = dadosAnteriores ? JSON.parse(dadosAnteriores) : [];
+    const pokemons: PokemonCadastro[] = dadosAnteriores ? JSON.parse(dadosAnteriores) : [];
 
     pokemons.push(pokemon);
     await AsyncStorage.setItem(chave, JSON.stringify(pokemons));
