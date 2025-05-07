@@ -2,32 +2,30 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   ImageBackground,
   Switch,
   ScrollView,
   Alert,
   Image,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { estilosGlobais } from "../../styles/estilosGlobais";
 import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
 import TelaCarregamento from "../../components/TelaCarregamento";
-import ComponenteTipoPokemon from "../../components/ComponenteTipoPokemon";
-import ComponenteEspeciePokemon from "../../components/ComponenteEspeciePokemon";
-import { salvarPokemon } from "../(interno)/salvarPokemon";
-
-const imagensEspecies: Record<string, any> = {
-  Pikachu: require("../../assets/pokemons/pikachu.png"),
-  Charmander: require("../../assets/pokemons/charmander.png"),
-  Bulbasaur: require("../../assets/pokemons/bulbasaur.png"),
-};
+import { salvarPokemon } from "../../utils/salvarPokemon";
+import { buscarDadosPorEspecie, DadosPokemon } from "../../utils/pokeapi";
 
 export default function Cadastro() {
-  const [nomePokemon, setNomePokemon] = useState("");
-  const [tipoPokemon, setTipoPokemon] = useState("");
+  const router = useRouter();
+
+  const [usarNomePersonalizado, setUsarNomePersonalizado] = useState(false);
+  const [nomePersonalizado, setNomePersonalizado] = useState("");
   const [especiePokemon, setEspeciePokemon] = useState("");
+  const [tipoPokemon, setTipoPokemon] = useState("");
+  const [imagemPokemon, setImagemPokemon] = useState("");
   const [dataCaptura, setDataCaptura] = useState("");
   const [foiTroca, setFoiTroca] = useState(false);
   const [nomeTreinador, setNomeTreinador] = useState("");
@@ -37,21 +35,32 @@ export default function Cadastro() {
   const [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
   if (!fontesCarregadas) return <TelaCarregamento />;
 
-  const handleEspecieChange = (novaEspecie: string) => {
-    setEspeciePokemon(novaEspecie);
-    if (novaEspecie === "Pikachu") setTipoPokemon("Elétrico");
-    if (novaEspecie === "Charmander") setTipoPokemon("Fogo");
-    if (novaEspecie === "Bulbasaur") setTipoPokemon("Planta");
+  const buscarEspecie = async () => {
+    if (!especiePokemon) {
+      Alert.alert("Aviso", "Digite a espécie do Pokémon");
+      return;
+    }
+
+    const dados: DadosPokemon | null = await buscarDadosPorEspecie(especiePokemon);
+    if (dados) {
+      setEspeciePokemon(dados.nomeEspecie);
+      setTipoPokemon(dados.tipos.join(", "));
+      setImagemPokemon(dados.urlImagem);
+    } else {
+      Alert.alert("Erro", "Espécie não encontrada.");
+    }
   };
 
-  const handleSalvar = async () => {
-    if (!nomePokemon || !tipoPokemon || !especiePokemon || !idTreinador) {
+  const salvar = async () => {
+    const nomeFinal = usarNomePersonalizado ? nomePersonalizado : especiePokemon;
+
+    if (!nomeFinal || !tipoPokemon || !especiePokemon || !idTreinador) {
       Alert.alert("Erro", "Preencha todos os campos obrigatórios.");
       return;
     }
 
     const resultado = await salvarPokemon({
-      nomePokemon,
+      nomePokemon: nomeFinal,
       tipoPokemon,
       especiePokemon,
       dataCaptura,
@@ -63,14 +72,16 @@ export default function Cadastro() {
 
     if (resultado.sucesso) {
       Alert.alert("Sucesso", "Pokémon cadastrado com sucesso!");
-      setNomePokemon("");
+      setNomePersonalizado("");
       setTipoPokemon("");
       setEspeciePokemon("");
+      setImagemPokemon("");
       setDataCaptura("");
       setFoiTroca(false);
       setNomeTreinador("");
       setIdTreinador("");
       setDescricao("");
+      setUsarNomePersonalizado(false);
     } else {
       Alert.alert("Erro", "Não foi possível salvar o cadastro.");
     }
@@ -79,80 +90,105 @@ export default function Cadastro() {
   return (
     <ImageBackground
       source={require("../../assets/fundo.jpg")}
-      style={StyleSheet.absoluteFill}
+      style={estilosGlobais.fundoComOverlay}
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={[estilosGlobais.titulo, { marginBottom: 30 }]}>Cadastrar PokePaciente</Text>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.push("/(interno)")}>
+            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.replace("/login")}>
+            <Text style={estilosGlobais.linkTopo}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[estilosGlobais.titulo, { marginTop: 40, marginBottom: 30 }]}>
+          Cadastrar PokePaciente
+        </Text>
 
         <View style={styles.container}>
           <View style={styles.coluna}>
-            <Text style={styles.label}>Nome do Pokémon *</Text>
+            <Text style={estilosGlobais.label}>Espécie do Pokémon *</Text>
             <TextInput
-              style={styles.input}
-              value={nomePokemon}
-              onChangeText={setNomePokemon}
+              style={estilosGlobais.campoTexto}
+              value={especiePokemon}
+              onChangeText={setEspeciePokemon}
+              placeholder="Ex: Pikachu"
             />
 
-            <Text style={styles.label}>Tipo do Pokémon *</Text>
-            <ComponenteTipoPokemon selectedTipo={tipoPokemon} onTipoChange={setTipoPokemon} />
+            <TouchableOpacity onPress={buscarEspecie} style={estilosGlobais.botaoBase}>
+              <Text style={estilosGlobais.textoBotao}>Buscar Espécie</Text>
+            </TouchableOpacity>
 
-            <Text style={styles.label}>Espécie do Pokémon *</Text>
-            <ComponenteEspeciePokemon
-              selectedEspecie={especiePokemon}
-              onEspecieChange={handleEspecieChange}
-            />
+            <Text style={estilosGlobais.label}>Deseja dar um nome personalizado?</Text>
+            <Switch value={usarNomePersonalizado} onValueChange={setUsarNomePersonalizado} />
 
-            <View style={styles.imagemBox}>
-              {especiePokemon && imagensEspecies[especiePokemon] ? (
-                <Image
-                  source={imagensEspecies[especiePokemon]}
-                  style={styles.pokemonImagem}
-                  resizeMode="contain"
+            {usarNomePersonalizado && (
+              <>
+                <Text style={estilosGlobais.label}>Nome do Pokémon *</Text>
+                <TextInput
+                  style={estilosGlobais.campoTexto}
+                  value={nomePersonalizado}
+                  onChangeText={setNomePersonalizado}
+                  placeholder="Ex: Tyr, Sol..."
                 />
+              </>
+            )}
+
+            <Text style={estilosGlobais.label}>Tipo(s)</Text>
+            <TextInput
+              style={estilosGlobais.campoTexto}
+              value={tipoPokemon}
+              editable={false}
+            />
+
+            <View style={estilosGlobais.caixaImagem}>
+              {imagemPokemon ? (
+                <Image source={{ uri: imagemPokemon }} style={estilosGlobais.imagemPokemon} />
               ) : (
-                <Text style={styles.textoImagem}>Imagem do Pokémon</Text>
+                <Text style={estilosGlobais.textoCaixaImagem}>Imagem do Pokémon</Text>
               )}
             </View>
           </View>
 
           <View style={styles.coluna}>
-            <Text style={styles.label}>Data de Captura</Text>
+            <Text style={estilosGlobais.label}>Data de Captura</Text>
             <TextInput
-              style={styles.input}
+              style={estilosGlobais.campoTexto}
               placeholder="DD/MM/AAAA"
               value={dataCaptura}
               onChangeText={setDataCaptura}
             />
 
-            <Text style={styles.label}>Adquirido por troca?</Text>
+            <Text style={estilosGlobais.label}>Adquirido por troca?</Text>
             <Switch value={foiTroca} onValueChange={setFoiTroca} />
 
-            <Text style={styles.label}>Nome do Treinador</Text>
+            <Text style={estilosGlobais.label}>Nome do Treinador</Text>
             <TextInput
-              style={styles.input}
+              style={estilosGlobais.campoTexto}
               value={nomeTreinador}
               onChangeText={setNomeTreinador}
             />
 
-            <Text style={styles.label}>ID do Treinador *</Text>
+            <Text style={estilosGlobais.label}>ID do Treinador *</Text>
             <TextInput
-              style={styles.input}
+              style={estilosGlobais.campoTexto}
               value={idTreinador}
               onChangeText={setIdTreinador}
             />
 
-            <Text style={styles.label}>Descrição</Text>
+            <Text style={estilosGlobais.label}>Descrição</Text>
             <TextInput
-              style={styles.inputMultiline}
+              style={estilosGlobais.campoMultilinha}
               multiline
               numberOfLines={4}
               value={descricao}
               onChangeText={setDescricao}
             />
 
-            <TouchableOpacity style={styles.botao} onPress={handleSalvar}>
-              <Text style={styles.textoBotao}>Salvar Cadastro</Text>
+            <TouchableOpacity style={estilosGlobais.botaoBase} onPress={salvar}>
+              <Text style={estilosGlobais.textoBotao}>Salvar Cadastro</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -165,11 +201,21 @@ const styles = StyleSheet.create({
   scroll: {
     padding: 20,
   },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
   container: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 24,
+    maxWidth: 900,
+    alignSelf: "center",
+    width: "100%",
   },
   coluna: {
     flexGrow: 1,
@@ -178,58 +224,5 @@ const styles = StyleSheet.create({
     minWidth: 280,
     gap: 12,
     paddingHorizontal: 10,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 10,
-  },
-  inputMultiline: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 10,
-    height: 100,
-    textAlignVertical: "top",
-  },
-  label: {
-    fontFamily: "PressStart2P_400Regular",
-    fontSize: 10,
-    color: "#fff",
-    marginBottom: 4,
-  },
-  imagemBox: {
-    width: 160,
-    height: 160,
-    borderWidth: 2,
-    borderColor: "#fff",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginTop: 20,
-    alignSelf: "center",
-  },
-  pokemonImagem: {
-    width: 120,
-    height: 120,
-  },
-  textoImagem: {
-    fontFamily: "PressStart2P_400Regular",
-    fontSize: 8,
-    color: "#fff",
-    textAlign: "center",
-    paddingHorizontal: 4,
-  },
-  botao: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingVertical: 14,
-    marginTop: 20,
-    alignItems: "center",
-  },
-  textoBotao: {
-    color: "#e63946",
-    fontFamily: "PressStart2P_400Regular",
-    fontSize: 10,
   },
 });
