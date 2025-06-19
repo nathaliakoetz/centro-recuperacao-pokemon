@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, Alert, ImageBackground, StyleSheet, Modal, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ImageBackground,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+} from "react-native";
 import { router } from "expo-router";
 import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
 import * as Animatable from "react-native-animatable";
@@ -12,7 +20,9 @@ export default function Login() {
   const [codigoGerado, setCodigoGerado] = useState("");
   const [codigoDigitado, setCodigoDigitado] = useState("");
   const [segundaEtapa, setSegundaEtapa] = useState(false);
-  const [modalVisivel, setModalVisivel] = useState(false);
+  const [modalCodigoVisivel, setModalCodigoVisivel] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
+  const [modalErroVisivel, setModalErroVisivel] = useState(false);
   const [carregando, setCarregando] = useState(true);
 
   let [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
@@ -28,27 +38,30 @@ export default function Login() {
     const codigo = Math.floor(1000 + Math.random() * 9000).toString();
     setCodigoGerado(codigo);
     setSegundaEtapa(true);
-    setModalVisivel(true); // mostra o modal
+    setModalCodigoVisivel(true);
   };
 
   const verificarCredenciais = () => {
     if (usuario === "admin" && senha === "1234") {
       gerarCodigo();
     } else {
-      Alert.alert("Erro", "Usuário ou senha inválidos");
+      setMensagemErro("Usuário ou senha inválidos");
+      setModalErroVisivel(true);
     }
   };
 
   const verificarCodigo = () => {
     if (!codigoDigitado.trim()) {
-      Alert.alert("Atenção", "Digite o código recebido.");
+      setMensagemErro("Digite o código recebido.");
+      setModalErroVisivel(true);
       return;
     }
 
     if (parseInt(codigoDigitado) === parseInt(codigoGerado)) {
       router.push({ pathname: "/(interno)/tela-inicial", params: { usuario } });
     } else {
-      Alert.alert("Erro", "Código de verificação incorreto");
+      setMensagemErro("Código de verificação incorreto");
+      setModalErroVisivel(true);
     }
   };
 
@@ -103,23 +116,30 @@ export default function Login() {
           )}
         </View>
 
-        {/* Modal do código */}
-        <Modal transparent visible={modalVisivel} animationType="fade">
+        {/* Modal de Código */}
+        <Modal transparent visible={modalCodigoVisivel} animationType="fade">
           <View style={styles.modalFundo}>
-            <Animatable.View
-              animation="bounceIn"
-              duration={1000}
-              style={styles.modalConteudo}
-            >
-              <Text style={styles.modalTitulo}>Código de Verificação</Text>
+            <View style={styles.modalErroCaixa}>
+              <Text style={styles.modalErroTexto}>Código de Verificação</Text>
               <Text style={styles.modalCodigo}>{codigoGerado}</Text>
-              <TouchableOpacity
-                onPress={() => setModalVisivel(false)}
-                style={styles.botaoFechar}
-              >
-                <Text style={styles.botaoFecharTexto}>Fechar</Text>
+              <TouchableOpacity onPress={() => setModalCodigoVisivel(false)}>
+                <Text style={styles.modalErroFechar}>Fechar</Text>
               </TouchableOpacity>
-            </Animatable.View>
+            </View>
+          </View>
+        </Modal>
+
+
+
+        {/* Modal de Erro */}
+        <Modal transparent visible={modalErroVisivel} animationType="fade">
+          <View style={styles.modalFundo}>
+            <View style={styles.modalErroCaixa}>
+              <Text style={styles.modalErroTexto}>{mensagemErro}</Text>
+              <TouchableOpacity onPress={() => setModalErroVisivel(false)}>
+                <Text style={styles.modalErroFechar}>Fechar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       </View>
@@ -157,7 +177,7 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     alignItems: "center",
-    width: "30%",
+    width: "80%",
   },
   modalTitulo: {
     fontSize: 14,
@@ -169,10 +189,11 @@ const styles = StyleSheet.create({
   modalCodigo: {
     fontSize: 24,
     color: "#e63946",
-    marginBottom: 20,
-    fontWeight: "bold",
     fontFamily: "PressStart2P_400Regular",
+    marginBottom: 10,
+    textAlign: "center",
   },
+
   botaoFechar: {
     backgroundColor: "#2a9d8f",
     paddingVertical: 10,
@@ -183,5 +204,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "PressStart2P_400Regular",
     fontSize: 10,
+  },
+  modalErroCaixa: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    width: 300,
+  },
+  modalErroTexto: {
+    fontFamily: "PressStart2P_400Regular",
+    fontSize: 10,
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalErroFechar: {
+    fontFamily: "PressStart2P_400Regular",
+    fontSize: 10,
+    color: "#e63946",
+    textAlign: "center",
   },
 });

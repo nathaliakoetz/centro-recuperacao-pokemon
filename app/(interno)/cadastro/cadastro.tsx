@@ -1,4 +1,16 @@
-import {View, Text, TextInput, ImageBackground, Switch, ScrollView, Image, TouchableOpacity, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ImageBackground,
+  Switch,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  Modal,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
@@ -23,6 +35,8 @@ export default function Cadastro() {
   const [descricao, setDescricao] = useState("");
   const [listaSugestoes, setListaSugestoes] = useState<any[]>([]);
   const [todasEspecies, setTodasEspecies] = useState<any[]>([]);
+  const [modalMensagem, setModalMensagem] = useState("");
+  const [mostrarModal, setMostrarModal] = useState(false);
   const [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
 
   useEffect(() => {
@@ -61,11 +75,16 @@ export default function Cadastro() {
     setDataCaptura(formatado);
   };
 
+  const mostrarMensagem = (mensagem: string) => {
+    setModalMensagem(mensagem);
+    setMostrarModal(true);
+  };
+
   const salvar = async () => {
     const nomeFinal = usarNomePersonalizado ? nomePersonalizado : especiePokemon;
 
     if (!nomeFinal || !tipoPokemon || !especiePokemon || !idTreinador || !dataCaptura) {
-      alert("Preencha todos os campos obrigatórios corretamente.");
+      mostrarMensagem("Preencha todos os campos obrigatórios corretamente.");
       return;
     }
 
@@ -80,10 +99,9 @@ export default function Cadastro() {
       descricao,
       imagem: imagemPokemon,
     });
-    
 
     if (resultado.sucesso) {
-      alert("Pokémon cadastrado com sucesso!");
+      mostrarMensagem("Pokémon cadastrado com sucesso!");
       setNomePersonalizado("");
       setTipoPokemon("");
       setEspeciePokemon("");
@@ -96,19 +114,17 @@ export default function Cadastro() {
       setDescricao("");
       setUsarNomePersonalizado(false);
     } else {
-      alert("Erro ao salvar cadastro.");
+      mostrarMensagem("Erro ao salvar cadastro.");
     }
   };
 
   if (!fontesCarregadas) return <TelaCarregamento />;
 
   return (
-    <ImageBackground source={require("../../../assets/fundo.jpg")} 
-    style={estilosGlobais.fundoComOverlay} resizeMode="cover">
-
+    <ImageBackground source={require("../../../assets/fundo.jpg")} style={estilosGlobais.fundoComOverlay} resizeMode="cover">
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
+          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}> 
             <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.replace("/login")}> 
@@ -118,83 +134,124 @@ export default function Cadastro() {
 
         <Text style={[estilosGlobais.titulo, { marginTop: 40, marginBottom: 30 }]}>Cadastrar PokePaciente</Text>
 
-        <Text style={estilosGlobais.label}>Espécie do Pokémon *</Text>
-        <TextInput
-          style={estilosGlobais.campoTexto}
-          value={especiePokemon}
-          onChangeText={buscarEspecie}
-          placeholder="Digite o nome"
-        />
-
-        {listaSugestoes.length > 0 && (
-          <FlatList
-            data={listaSugestoes}
-            keyExtractor={(item) => item.name}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => selecionarEspecie(item.name)} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                <Image source={{ uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.url.split("/")[6]}.png` }} style={{ width: 40, height: 40, marginRight: 10 }} />
-                <Text style={{ color: "#fff" }}>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-
-        <Text style={estilosGlobais.label}>Possui nome personalizado?</Text>
-        <Switch value={usarNomePersonalizado} onValueChange={setUsarNomePersonalizado} />
-
-        {usarNomePersonalizado && (
-          <>
-            <Text style={estilosGlobais.label}>Nome do Pokémon *</Text>
+        <View style={styles.container}>
+          <View style={styles.coluna}>
+            <Text style={estilosGlobais.label}>Espécie do Pokémon *</Text>
             <TextInput
               style={estilosGlobais.campoTexto}
-              value={nomePersonalizado}
-              onChangeText={setNomePersonalizado}
-              placeholder="Ex: Sol, Tyr"
+              value={especiePokemon}
+              onChangeText={buscarEspecie}
+              placeholder="Digite o nome"
             />
-          </>
-        )}
+            {listaSugestoes.length > 0 && (
+              <FlatList
+                data={listaSugestoes}
+                keyExtractor={(item) => item.name}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => selecionarEspecie(item.name)} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+                    <Image source={{ uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.url.split("/")[6]}.png` }} style={{ width: 40, height: 40, marginRight: 10 }} />
+                    <Text style={{ color: "#fff" }}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
 
-        <Text style={estilosGlobais.label}>Tipo(s)</Text>
-        <TextInput style={estilosGlobais.campoTexto} value={tipoPokemon} editable={false} />
+            <Text style={estilosGlobais.label}>Tipo(s)</Text>
+            <TextInput style={estilosGlobais.campoTexto} value={tipoPokemon} editable={false} />
 
-        {imagemPokemon && (
-          <View style={estilosGlobais.caixaImagem}>
-            <Image source={{ uri: imagemPokemon }} style={estilosGlobais.imagemPokemon} />
+            {imagemPokemon && (
+              <View style={estilosGlobais.caixaImagem}>
+                <Image source={{ uri: imagemPokemon }} style={estilosGlobais.imagemPokemon} />
+              </View>
+            )}
           </View>
-        )}
 
-        <Text style={estilosGlobais.label}>Data de Captura *</Text>
-        <TextInput
-          style={estilosGlobais.campoTexto}
-          placeholder="DD/MM/AAAA"
-          keyboardType="numeric"
-          value={dataCaptura}
-          onChangeText={formatarData}
-          maxLength={10}
-        />
+          <View style={styles.coluna}>
+            <Text style={estilosGlobais.label}>Possui nome personalizado?</Text>
+            <Switch value={usarNomePersonalizado} onValueChange={setUsarNomePersonalizado} />
 
-        <Text style={estilosGlobais.label}>Adquirido por troca?</Text>
-        <Switch value={foiTroca} onValueChange={setFoiTroca} />
+            {usarNomePersonalizado && (
+              <>
+                <Text style={estilosGlobais.label}>Nome do Pokémon *</Text>
+                <TextInput
+                  style={estilosGlobais.campoTexto}
+                  value={nomePersonalizado}
+                  onChangeText={setNomePersonalizado}
+                  placeholder="Ex: Sol, Tyr"
+                />
+              </>
+            )}
 
-        <Text style={estilosGlobais.label}>Nome do Treinador</Text>
-        <TextInput style={estilosGlobais.campoTexto} value={nomeTreinador} onChangeText={setNomeTreinador} />
+            <Text style={estilosGlobais.label}>Data de Captura *</Text>
+            <TextInput
+              style={estilosGlobais.campoTexto}
+              placeholder="DD/MM/AAAA"
+              keyboardType="numeric"
+              value={dataCaptura}
+              onChangeText={formatarData}
+              maxLength={10}
+            />
 
-        <Text style={estilosGlobais.label}>ID do Treinador *</Text>
-        <TextInput style={estilosGlobais.campoTexto} value={idTreinador} onChangeText={setIdTreinador} />
+            <Text style={estilosGlobais.label}>Adquirido por troca?</Text>
+            <Switch value={foiTroca} onValueChange={setFoiTroca} />
 
-        <Text style={estilosGlobais.label}>Descrição</Text>
-        <TextInput
-          style={estilosGlobais.campoMultilinha}
-          multiline
-          numberOfLines={4}
-          value={descricao}
-          onChangeText={setDescricao}
-        />
+            <Text style={estilosGlobais.label}>Nome do Treinador</Text>
+            <TextInput style={estilosGlobais.campoTexto} value={nomeTreinador} onChangeText={setNomeTreinador} />
 
-        <TouchableOpacity style={estilosGlobais.botaoBase} onPress={salvar}>
-          <Text style={estilosGlobais.textoBotao}>Salvar Cadastro</Text>
-        </TouchableOpacity>
+            <Text style={estilosGlobais.label}>ID do Treinador *</Text>
+            <TextInput style={estilosGlobais.campoTexto} value={idTreinador} onChangeText={setIdTreinador} />
+
+            <Text style={estilosGlobais.label}>Descrição</Text>
+            <TextInput
+              style={estilosGlobais.campoMultilinha}
+              multiline
+              numberOfLines={4}
+              value={descricao}
+              onChangeText={setDescricao}
+            />
+
+            <TouchableOpacity style={estilosGlobais.botaoBase} onPress={salvar}>
+              <Text style={estilosGlobais.textoBotao}>Salvar Cadastro</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
+
+      <Modal
+        visible={mostrarModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMostrarModal(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
+          <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" }}>
+            <Text style={{ fontWeight: "bold", marginBottom: 10 }}>{modalMensagem}</Text>
+            <TouchableOpacity onPress={() => setMostrarModal(false)}>
+              <Text style={{ color: "#e63946", fontWeight: "bold" }}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 24,
+    maxWidth: 900,
+    alignSelf: "center",
+    width: "100%",
+  },
+  coluna: {
+    flexGrow: 1,
+    flexBasis: "45%",
+    maxWidth: 400,
+    minWidth: 280,
+    gap: 12,
+    paddingHorizontal: 10,
+  },
+});

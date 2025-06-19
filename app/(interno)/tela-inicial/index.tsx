@@ -13,10 +13,8 @@ export default function AreaInterna() {
 
   const opcoes = [
     { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro/cadastro-check" },
-    { titulo: "Lista de Espera", rota: "/(interno)/consulta/espera" },
-    { titulo: "Consultas em Andamento", rota: "/(interno)/consulta/consultas" },
     { titulo: "Cadastro Urgente", rota: "/(interno)/urgente/urgente" },
-  ] as const;
+    { titulo: "Área Médica", rota: "/(interno)/consulta/medico" },] as const;
 
   return (
     <ImageBackground
