@@ -4,19 +4,17 @@ import {
   Text,
   TextInput,
   ScrollView,
-  ImageBackground,
   Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
-import TelaCarregamento from "../../../components/TelaCarregamento";
+import { cores } from "../../../styles/estilosGlobais"; // Importando cores
 import { salvarPokemon } from "../../../utils/salvarPokemon";
 import { buscarDadosPorEspecie } from "../../../utils/pokeapi";
+import axios from "axios";
 import * as Animatable from "react-native-animatable";
 
 export default function CadastroUrgente() {
@@ -27,9 +25,13 @@ export default function CadastroUrgente() {
   const [nomeTreinador, setNomeTreinador] = useState("");
   const [descricao, setDescricao] = useState("");
   const [modalVisivel, setModalVisivel] = useState(false);
+  const [todasEspecies, setTodasEspecies] = useState<any[]>([]);
 
-  const [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
-  if (!fontesCarregadas) return <TelaCarregamento />;
+  useEffect(() => {
+    axios.get("https://pokeapi.co/api/v2/pokemon?limit=2000")
+      .then(res => setTodasEspecies(res.data.results.filter((pokemon: any) => !pokemon.name.includes('mega')))) // Filtrando Mega Pokémons
+      .catch(() => setTodasEspecies([]));
+  }, []);
 
   const buscarEspecie = async () => {
     if (!especiePokemon.trim()) return;
@@ -67,14 +69,10 @@ export default function CadastroUrgente() {
   };
 
   return (
-    <ImageBackground
-      source={require("../../../assets/fundo.jpg")}
-      style={estilosGlobais.fundoComOverlay}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={[estilosGlobais.topBar, { marginTop: 40 }]}> 
-          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}> 
+        <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
+          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
             <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
           </TouchableOpacity>
         </View>
@@ -144,7 +142,7 @@ export default function CadastroUrgente() {
           </View>
         </Modal>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -184,7 +182,7 @@ const styles = StyleSheet.create({
   modalTexto: {
     fontSize: 14,
     color: "#e63946",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto",
     textAlign: "center",
     marginBottom: 20,
   },
@@ -196,7 +194,14 @@ const styles = StyleSheet.create({
   },
   modalBotaoTexto: {
     color: "#fff",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto",
     fontSize: 10,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundoEscuro, // Usando fundo escuro para manter o padrão
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });

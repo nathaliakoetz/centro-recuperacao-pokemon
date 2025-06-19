@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { cores } from "../styles/estilosGlobais"; // Importando as cores
 import { estilosGlobais } from "../styles/estilosGlobais"; // Importando estilos globais
 
-export default function Login() {
+export default function LoginMedico() {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [codigoGerado, setCodigoGerado] = useState("");
@@ -35,7 +35,7 @@ export default function Login() {
   };
 
   const verificarCredenciais = () => {
-    if (usuario === "admin" && senha === "1234") {
+    if (usuario === "medico" && senha === "1234") { // Login de médico
       gerarCodigo();
     } else {
       setMensagemErro("Usuário ou senha inválidos");
@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     if (parseInt(codigoDigitado) === parseInt(codigoGerado)) {
-      router.push({ pathname: "/(interno)/tela-inicial", params: { usuario } });
+      router.push({ pathname: "/(interno)/medico/medico", params: { usuario } }); // Redirecionando para a tela do médico
     } else {
       setMensagemErro("Código de verificação incorreto");
       setModalErroVisivel(true);
@@ -62,7 +62,7 @@ export default function Login() {
     <View style={styles.container}>
       <View style={estilosGlobais.fundoComOverlay}>
         <View style={estilosGlobais.containerCentralizado}>
-          <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
+          <Text style={estilosGlobais.titulo}>Login do Médico</Text>
 
           {!segundaEtapa && (
             <>
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 14,
-    color: cores.azulEscuro, // Cor mais profissional para o texto
+    color: cores.azulEscuro,
     borderWidth: 1,
     borderColor: cores.cinzaClaro,
   },

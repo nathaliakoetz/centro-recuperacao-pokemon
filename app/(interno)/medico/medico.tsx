@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Image, Modal, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Modal, TextInput } from "react-native";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
 
 const getDataAtualFormatada = () => {
   const data = new Date();
@@ -82,6 +83,32 @@ export default function Medico() {
           <Text style={styles.linkBarra}>Internação</Text> 
         </TouchableOpacity>
       </View>
+
+      {/* Modal de consulta */}
+      <Modal transparent visible={modalVisible} animationType="fade">
+        <View style={styles.modalFundo}>
+          <View style={styles.modalConteudo}>
+            <Text style={styles.modalTitulo}>Ficha Médica</Text>
+            <Text style={styles.modalNome}>{pokemonSelecionado?.nomePokemon}</Text>
+            <TextInput
+              style={styles.inputHistorico}
+              multiline
+              placeholder="Atualização médica..."
+              value={historico}
+              onChangeText={setHistorico}
+            />
+            <TouchableOpacity style={styles.botao} onPress={salvarConsulta}>
+              <Text style={styles.botaoTexto}>Salvar Atualização</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.botao, { backgroundColor: "#e63946" }]} onPress={liberarPokemon}>
+              <Text style={styles.botaoTexto}>Liberar Pokémon</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={styles.fechar}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }
@@ -94,13 +121,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   linkBarra: {
-    fontSize: 10,
-    fontFamily: "PressStart2P_400Regular",
-    color: "#fff",
+    fontSize: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
+    color: cores.textoClaro, // Usando a cor padrão
   },
   modalFundo: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -112,26 +139,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalTitulo: {
-    fontFamily: "PressStart2P_400Regular",
-    fontSize: 12,
-    color: "#e63946",
+    fontFamily: "Roboto", // Tipografia Roboto
+    fontSize: 14,
+    color: cores.vermelho, // Usando a cor vermelha do padrão
     marginBottom: 12,
   },
-  modalLabel: {
-    fontSize: 10,
-    fontFamily: "PressStart2P_400Regular",
-    color: "#333",
-    marginVertical: 4,
-    textAlign: "center",
+  modalNome: {
+    fontSize: 14,
+    color: cores.vermelho, // Usando a cor vermelha do padrão
+    fontWeight: "bold",
+    marginBottom: 10,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   inputHistorico: {
-    borderColor: "#ccc",
+    borderColor: cores.cinzaClaro, // Usando a cor padrão para borda
     borderWidth: 1,
     borderRadius: 8,
     padding: 10,
     height: 100,
     width: "100%",
     marginTop: 10,
-    fontSize: 10,
+    fontSize: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
+  },
+  botao: {
+    backgroundColor: cores.textoClaro, // Cor do botão
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 5,
+  },
+  botaoTexto: {
+    color: "#fff",
+    fontFamily: "Roboto", // Tipografia Roboto
+    fontSize: 12,
+  },
+  fechar: {
+    marginTop: 10,
+    color: cores.vermelho, // Cor para o fechar
+    fontSize: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
 });

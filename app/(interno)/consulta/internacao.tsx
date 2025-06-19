@@ -1,10 +1,8 @@
-// pages/(interno)/consulta/internacao.tsx
 import { useEffect, useState } from "react";
 import {
   View,
   Text,
   Image,
-  ImageBackground,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -13,8 +11,8 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
+import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
 import { useRouter } from "expo-router";
-import TelaCarregamento from "../../../components/TelaCarregamento";
 import { PokemonCadastro } from "../../../utils/salvarPokemon";
 
 export default function Internacao() {
@@ -88,16 +86,10 @@ export default function Internacao() {
     setNovaAtualizacao("");
   };
 
-  if (carregando) return <TelaCarregamento />;
-
   return (
-    <ImageBackground
-      source={require("../../../assets/fundo.jpg")}
-      style={estilosGlobais.fundoComOverlay}
-      resizeMode="cover"
-    >
+    <View style={estilosGlobais.containerCentralizado}>
       <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
-        <TouchableOpacity onPress={() => router.push("/(interno)/consulta/medico")}>
+        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
           <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -141,7 +133,7 @@ export default function Internacao() {
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -158,6 +150,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 150,
     margin: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
   },
   imagem: {
     width: 80,
@@ -168,6 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 12,
     color: "#e63946",
+    fontFamily: "Roboto", // Usando a tipografia Roboto
   },
   modalFundo: {
     flex: 1,
@@ -184,15 +182,16 @@ const styles = StyleSheet.create({
   },
   modalTitulo: {
     fontSize: 16,
-    color: "#2a9d8f",
-    fontFamily: "PressStart2P_400Regular",
+    color: "#2a9d8f", // Cor do título do modal
+    fontFamily: "Roboto", // Tipografia Roboto
     marginBottom: 10,
   },
   modalNome: {
     fontSize: 14,
-    color: "#e63946",
+    color: "#e63946", // Cor do nome do Pokémon
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   input: {
     backgroundColor: "#eee",
@@ -202,6 +201,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: "top",
     marginBottom: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   botao: {
     backgroundColor: "#2a9d8f",
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   },
   botaoTexto: {
     color: "#fff",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
     fontSize: 8,
   },
   fechar: {
     marginTop: 10,
     color: "#e63946",
     fontSize: 10,
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
   },
 });

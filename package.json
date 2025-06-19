@@ -1,5 +1,5 @@
 {
-  "name": "unisenac",
+  "name": "nathkoetz",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/press-start-2p": "^0.3.0",
+    "@expo-google-fonts/roboto": "^0.4.0",
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/slider": "^4.5.6",

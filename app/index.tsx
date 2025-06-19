@@ -1,33 +1,29 @@
-import { Text, StyleSheet, View, ImageBackground } from "react-native";
-import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
-import { useState, useEffect } from "react";
-import TelaCarregamento from "../components/TelaCarregamento";
+import { Text, StyleSheet, View } from "react-native";
 import BotaoLink from "../components/BotaoLink";
 import { estilosGlobais } from "../styles/estilosGlobais";
+import { cores } from "../styles/estilosGlobais"; // Importando cores
 
 export default function Home() {
-  const [carregando, setCarregando] = useState(true);
-  let [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
-
-  useEffect(() => {
-    const timer = setTimeout(() => setCarregando(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (carregando || !fontesCarregadas) return <TelaCarregamento />;
-
   return (
-    <ImageBackground
-      source={require("../assets/fundo.jpg")}
-      style={{ flex: 1, width: "100%", height: "100%" }}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
       <View style={estilosGlobais.fundoComOverlay}>
         <View style={estilosGlobais.containerCentralizado}>
           <Text style={estilosGlobais.titulo}>Centro de Recuperação Pokémon</Text>
           <BotaoLink href="/login">Acessar Área Interna</BotaoLink>
+          <BotaoLink href="/loginMedico">Acessar Área Médica</BotaoLink>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundoEscuro, // Cor de fundo escuro
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    fontFamily: "Roboto", // Aplicando a fonte Roboto
+  },
+});

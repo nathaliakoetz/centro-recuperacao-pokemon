@@ -2,7 +2,6 @@ import {
   View,
   Text,
   TextInput,
-  ImageBackground,
   Switch,
   ScrollView,
   Image,
@@ -14,8 +13,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
-import TelaCarregamento from "../../../components/TelaCarregamento";
+import { useFonts } from "@expo-google-fonts/roboto"; // Alterando para Roboto
 import { salvarPokemon } from "../../../utils/salvarPokemon";
 import { buscarDadosPorEspecie, DadosPokemon } from "../../../utils/pokeapi";
 import axios from "axios";
@@ -37,11 +35,11 @@ export default function Cadastro() {
   const [todasEspecies, setTodasEspecies] = useState<any[]>([]);
   const [modalMensagem, setModalMensagem] = useState("");
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [fontesCarregadas] = useFonts({ PressStart2P_400Regular });
+  const [fontesCarregadas] = useFonts({ Roboto: require("@expo-google-fonts/roboto") });
 
   useEffect(() => {
     axios.get("https://pokeapi.co/api/v2/pokemon?limit=2000")
-      .then(res => setTodasEspecies(res.data.results))
+      .then(res => setTodasEspecies(res.data.results.filter((pokemon: any) => !pokemon.name.includes('mega')))) // Filtrando Mega Pokémons
       .catch(() => setTodasEspecies([]));
   }, []);
 
@@ -118,16 +116,14 @@ export default function Cadastro() {
     }
   };
 
-  if (!fontesCarregadas) return <TelaCarregamento />;
-
   return (
-    <ImageBackground source={require("../../../assets/fundo.jpg")} style={estilosGlobais.fundoComOverlay} resizeMode="cover">
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}> 
+          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
             <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.replace("/login")}> 
+          <TouchableOpacity onPress={() => router.replace("/login")}>
             <Text style={estilosGlobais.linkTopo}>Logout</Text>
           </TouchableOpacity>
         </View>
@@ -232,7 +228,7 @@ export default function Cadastro() {
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 

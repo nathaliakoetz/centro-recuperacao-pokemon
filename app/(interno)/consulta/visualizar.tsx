@@ -1,10 +1,10 @@
-// pages/(interno)/consulta/visualizar.tsx
 import { useEffect, useState, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ImageBackground, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
 import { useRouter, useFocusEffect } from "expo-router";
-import { PokemonCadastro } from "../../../utils/salvarPokemon"; // ajuste o caminho se necessário
+import { PokemonCadastro } from "../../../utils/salvarPokemon"; 
+import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
 
 export default function VisualizarConsulta() {
   const [pokemonsConsulta, setPokemonsConsulta] = useState<PokemonCadastro[]>([]);
@@ -41,7 +41,7 @@ export default function VisualizarConsulta() {
   return (
     <ImageBackground source={require("../../../assets/fundo.jpg")} style={estilosGlobais.fundoComOverlay} resizeMode="cover">
       <View style={estilosGlobais.topBar}>
-        <TouchableOpacity onPress={() => router.push("/(interno)/consulta/medico")}>
+        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
           <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -81,6 +81,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
   },
   img: {
     width: 60,
@@ -89,12 +94,14 @@ const styles = StyleSheet.create({
   },
   nome: {
     fontWeight: "bold",
-    color: "#e63946",
     fontSize: 14,
+    color: cores.vermelho, // Cor padrão
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   texto: {
-    color: "#333",
+    color: cores.textoClaro, // Cor padrão de texto
     fontSize: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
     marginTop: 2,
   },
   nenhumTexto: {

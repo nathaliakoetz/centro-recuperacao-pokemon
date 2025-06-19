@@ -4,17 +4,15 @@ import {
   Text,
   FlatList,
   Image,
-  ImageBackground,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   Modal,
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
 import { useRouter } from "expo-router";
-import TelaCarregamento from "../../../components/TelaCarregamento";
-import { PokemonCadastro } from "../../../utils/salvarPokemon";
+import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
 
 const larguraTela = Dimensions.get("window").width;
 
@@ -25,7 +23,7 @@ function calcularNumColunas() {
 }
 
 export default function ListaEspera() {
-  const [pokemons, setPokemons] = useState<PokemonCadastro[]>([]);
+  const [pokemons, setPokemons] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [numColunas, setNumColunas] = useState(calcularNumColunas());
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -38,7 +36,7 @@ export default function ListaEspera() {
         const todasChaves = await AsyncStorage.getAllKeys();
         const chavesPokemons = todasChaves.filter((chave) => chave.startsWith("pokemons:"));
         const resultados = await AsyncStorage.multiGet(chavesPokemons);
-        const lista = resultados.flatMap(([, valor]) => JSON.parse(valor || "[]")) as PokemonCadastro[];
+        const lista = resultados.flatMap(([, valor]) => JSON.parse(valor || "[]")) as any[];
 
         const filtrados = lista.filter(
           (p) => !p.emConsulta && !p.internado && !p.finalizado
@@ -72,12 +70,12 @@ export default function ListaEspera() {
     return () => subscription?.remove();
   }, []);
 
-  const enviarParaConsulta = async (pokemon: PokemonCadastro) => {
+  const enviarParaConsulta = async (pokemon: any) => {
     const chave = `pokemons:${pokemon.idTreinador}`;
     const dados = await AsyncStorage.getItem(chave);
     if (!dados) return;
 
-    const lista = JSON.parse(dados) as PokemonCadastro[];
+    const lista = JSON.parse(dados) as any[];
     const novaLista = lista.map((p) =>
       p.nomePokemon === pokemon.nomePokemon ? { ...p, emConsulta: true } : p
     );
@@ -88,9 +86,7 @@ export default function ListaEspera() {
     setModalVisivel(true);
   };
 
-  if (carregando) return <TelaCarregamento />;
-
-  const renderItem = ({ item }: { item: PokemonCadastro }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View
       style={[item.urgente ? styles.cardUrgente : styles.cardBranco, { width: larguraTela / numColunas - 32 }]}
     >
@@ -107,13 +103,9 @@ export default function ListaEspera() {
   );
 
   return (
-    <ImageBackground
-      source={require("../../../assets/fundo.jpg")}
-      style={estilosGlobais.fundoComOverlay}
-      resizeMode="cover"
-    >
+    <View style={estilosGlobais.containerCentralizado}>
       <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
-        <TouchableOpacity onPress={() => router.push("/(interno)/consulta/medico")}>
+        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
           <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -128,25 +120,19 @@ export default function ListaEspera() {
 
       {/* Modal de confirmação de consulta */}
       <Modal transparent visible={modalVisivel} animationType="fade">
-        <ImageBackground
-          source={require("../../../assets/fundo.jpg")}
-          style={estilosGlobais.fundoComOverlay}
-          resizeMode="cover"
-        >
-          <View style={modalStyles.modalFundo}>
-            <View style={modalStyles.modalConteudo}>
-              <Text style={estilosGlobais.titulo}>POKÉMON EM CONSULTA</Text>
-              <Text style={modalStyles.texto}>
-                O Pokémon <Text style={{ fontWeight: "bold" }}>{pokemonNome}</Text> foi enviado para a consulta com sucesso!
-              </Text>
-              <TouchableOpacity style={modalStyles.botaoFechar} onPress={() => setModalVisivel(false)}>
-                <Text style={modalStyles.textoFechar}>Fechar</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={modalStyles.modalFundo}>
+          <View style={modalStyles.modalConteudo}>
+            <Text style={estilosGlobais.titulo}>POKÉMON EM CONSULTA</Text>
+            <Text style={modalStyles.texto}>
+              O Pokémon <Text style={{ fontWeight: "bold" }}>{pokemonNome}</Text> foi enviado para a consulta com sucesso!
+            </Text>
+            <TouchableOpacity style={modalStyles.botaoFechar} onPress={() => setModalVisivel(false)}>
+              <Text style={modalStyles.textoFechar}>Fechar</Text>
+            </TouchableOpacity>
           </View>
-        </ImageBackground>
+        </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -195,19 +181,22 @@ const styles = StyleSheet.create({
   nomePokemon: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#111",
+    color: cores.textoClaro, // Usando a cor padrão
     marginBottom: 4,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   nomeTreinador: {
     fontSize: 14,
     fontStyle: "italic",
-    color: "#444",
+    color: cores.textoClaro, // Usando a cor padrão
     marginBottom: 6,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   descricao: {
     fontSize: 14,
-    color: "#111",
+    color: cores.textoClaro, // Usando a cor padrão
     marginBottom: 10,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   botaoConsulta: {
     backgroundColor: "#2a9d8f",
@@ -218,7 +207,7 @@ const styles = StyleSheet.create({
   },
   textoBotao: {
     color: "#fff",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
     fontSize: 8,
     textAlign: "center",
   },
@@ -238,11 +227,13 @@ const modalStyles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     gap: 20,
+    width: "80%",
   },
   texto: {
     fontSize: 14,
-    color: "#333",
+    color: cores.textoClaro, // Usando a cor padrão
     textAlign: "center",
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   botaoFechar: {
     backgroundColor: "#2a9d8f",
@@ -252,7 +243,7 @@ const modalStyles = StyleSheet.create({
   },
   textoFechar: {
     color: "#fff",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
     fontSize: 10,
   },
 });

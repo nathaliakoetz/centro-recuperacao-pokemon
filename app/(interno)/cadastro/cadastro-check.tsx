@@ -1,14 +1,11 @@
-import { View, Text, StyleSheet, Button, ImageBackground, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Button, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
+import { cores } from "../../../styles/estilosGlobais"; // Importando cores
 
 export default function CadastroCheck() {
   return (
-    <ImageBackground
-      source={require("../../../assets/fundo.jpg")}
-      style={estilosGlobais.fundoComOverlay}
-      resizeMode="cover"
-    >
+    <View style={estilos.container}>
       <ScrollView contentContainerStyle={estilosGlobais.scroll}>
         <View style={estilosGlobais.topBar}>
           <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
@@ -18,35 +15,58 @@ export default function CadastroCheck() {
             <Text style={estilosGlobais.linkTopo}>Logout</Text>
           </TouchableOpacity>
         </View>
-      
 
-      <View >
-        <View style={estilosGlobais.containerCentralPadding}>
+        <View style={estilosGlobais.containerCentralizado}>
           <Text style={[estilosGlobais.titulo, { fontSize: 14, marginBottom: 30 }]}>
             O Pokémon já está cadastrado?
           </Text>
-          <View style={styles.botoes}>
-            <Button
-              title="Sim"
+          
+          <View style={estilos.botoes}>
+            <TouchableOpacity
+              style={[estilos.botao, { backgroundColor: cores.azulEscuro }]}
               onPress={() => router.push("/(interno)/cadastro/buscar-id")}
-              color="#2a9d8f"
-            />
-            <Button
-              title="Não"
+            >
+              <Text style={estilos.textoBotao}>Sim</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[estilos.botao, { backgroundColor: cores.vermelho }]}
               onPress={() => router.push("/(interno)/cadastro/cadastro")}
-              color="#e63946"
-            />
+            >
+              <Text style={estilos.textoBotao}>Não</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundoEscuro, // Usando o fundo escuro
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
   botoes: {
     flexDirection: "row",
     gap: 20,
+    justifyContent: "center",
+    marginTop: 30,
+  },
+  botao: {
+    backgroundColor: cores.azulEscuro, // Cor de fundo dos botões
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textoBotao: {
+    color: cores.branco,
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

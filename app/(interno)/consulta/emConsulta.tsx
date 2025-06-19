@@ -1,10 +1,8 @@
-// pages/(interno)/consulta/emConsulta.tsx
 import { useEffect, useState } from "react";
 import {
   View,
   Text,
   Image,
-  ImageBackground,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -13,8 +11,8 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { estilosGlobais } from "../../../styles/estilosGlobais";
+import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
 import { useRouter } from "expo-router";
-import TelaCarregamento from "../../../components/TelaCarregamento";
 
 export default function EmConsulta() {
   const router = useRouter();
@@ -98,16 +96,10 @@ export default function EmConsulta() {
     setModalVisivel(false);
   };
 
-  if (carregando) return <TelaCarregamento />;
-
   return (
-    <ImageBackground
-      source={require("../../../assets/fundo.jpg")}
-      style={estilosGlobais.fundoComOverlay}
-      resizeMode="cover"
-    >
-      <View style={[estilosGlobais.topBar, { marginTop: 40 }]}> 
-        <TouchableOpacity onPress={() => router.push("/(interno)/consulta/medico")}> 
+    <View style={estilos.container}>
+      <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
+        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
           <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -115,45 +107,50 @@ export default function EmConsulta() {
       <FlatList
         data={pokemons}
         keyExtractor={(_, i) => i.toString()}
-        contentContainerStyle={styles.lista}
+        contentContainerStyle={estilos.lista}
+        horizontal // Exibindo os cards horizontalmente
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => abrirModal(item)}>
-            <Image source={{ uri: item.imagem }} style={styles.imagem} />
-            <Text style={styles.nome}>{item.nomePokemon}</Text>
+          <TouchableOpacity style={estilos.card} onPress={() => abrirModal(item)}>
+            <Image source={{ uri: item.imagem }} style={estilos.imagem} />
+            <Text style={estilos.nome}>{item.nomePokemon}</Text>
           </TouchableOpacity>
         )}
       />
 
       <Modal transparent visible={modalVisivel} animationType="fade">
-        <View style={styles.modalFundo}>
-          <View style={styles.modalConteudo}>
-            <Image source={{ uri: pokemonSelecionado?.imagem }} style={styles.imgGrande} />
+        <View style={estilos.modalFundo}>
+          <View style={estilos.modalConteudo}>
+            <Image source={{ uri: pokemonSelecionado?.imagem }} style={estilos.imgGrande} />
             <TextInput
-              style={styles.input}
+              style={estilos.input}
               multiline
               placeholder="Escreva o histórico..."
               value={historicoTexto}
               onChangeText={setHistoricoTexto}
             />
-            <TouchableOpacity style={styles.botao} onPress={internarPokemon}>
-              <Text style={styles.botaoTexto}>Internar</Text>
+            <TouchableOpacity style={estilos.botao} onPress={internarPokemon}>
+              <Text style={estilos.botaoTexto}>Internar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.botao, { backgroundColor: "#e63946" }]} onPress={liberarPokemon}>
-              <Text style={styles.botaoTexto}>Liberar</Text>
+            <TouchableOpacity style={[estilos.botao, { backgroundColor: "#e63946" }]} onPress={liberarPokemon}>
+              <Text style={estilos.botaoTexto}>Liberar</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setModalVisivel(false)}>
-              <Text style={styles.fechar}>Fechar</Text>
+              <Text style={estilos.fechar}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  lista: {
+const estilos = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundoEscuro, // Usando fundo escuro
     padding: 20,
+  },
+  lista: {
     gap: 16,
     alignItems: "center",
   },
@@ -162,8 +159,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     alignItems: "center",
-    width: 150,
-    margin: 10,
+    width: 150, // Aumentei o tamanho do card
+    marginRight: 10,
+    marginBottom: 10,
   },
   imagem: {
     width: 80,
@@ -173,7 +171,8 @@ const styles = StyleSheet.create({
   nome: {
     fontWeight: "bold",
     fontSize: 12,
-    color: "#e63946",
+    color: "#e63946", // Cor padrão
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   modalFundo: {
     flex: 1,
@@ -185,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 16,
-    width: "80%",
+    width: 300, // Ajustando o modal para ser mais quadrado
     alignItems: "center",
   },
   imgGrande: {
@@ -202,6 +201,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: "top",
     marginBottom: 12,
+    fontFamily: "Roboto", // Tipografia Roboto
   },
   botao: {
     backgroundColor: "#2a9d8f",
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   },
   botaoTexto: {
     color: "#fff",
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
     fontSize: 8,
   },
   fechar: {
     marginTop: 10,
     color: "#e63946",
     fontSize: 10,
-    fontFamily: "PressStart2P_400Regular",
+    fontFamily: "Roboto", // Tipografia Roboto
   },
 });
