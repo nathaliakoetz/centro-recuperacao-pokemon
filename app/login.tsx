@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { cores } from "../styles/estilosGlobais"; // Importando as cores
-import { estilosGlobais } from "../styles/estilosGlobais"; // Importando estilos globais
+import { estilosGlobais, cores, tipografia } from "../styles/estilosGlobais";
+import BotaoAcao from "../components/BotaoAcao";
 
 export default function Login() {
   const [usuario, setUsuario] = useState("");
@@ -49,7 +42,6 @@ export default function Login() {
       setModalErroVisivel(true);
       return;
     }
-
     if (parseInt(codigoDigitado) === parseInt(codigoGerado)) {
       router.push({ pathname: "/(interno)/tela-inicial", params: { usuario } });
     } else {
@@ -59,139 +51,95 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={estilosGlobais.fundoComOverlay}>
-        <View style={estilosGlobais.containerCentralizado}>
-          <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
+    <View style={estilosGlobais.containerCentralizado}>
+      <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
 
-          {!segundaEtapa && (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Usuário"
-                placeholderTextColor={cores.cinzaClaro}
-                value={usuario}
-                onChangeText={setUsuario}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                placeholderTextColor={cores.cinzaClaro}
-                secureTextEntry
-                value={senha}
-                onChangeText={setSenha}
-              />
-              <Text style={styles.loginButton} onPress={verificarCredenciais}>
-                Próximo
-              </Text>
-            </>
-          )}
-
-          {segundaEtapa && (
-            <>
-              <Text style={estilosGlobais.label}>Digite o código recebido</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex: 1234"
-                placeholderTextColor={cores.cinzaClaro}
-                keyboardType="numeric"
-                value={codigoDigitado}
-                onChangeText={setCodigoDigitado}
-              />
-              <Text style={styles.loginButton} onPress={verificarCodigo}>
-                Verificar
-              </Text>
-            </>
-          )}
-        </View>
-
-        {/* Modal de Código */}
-        <Modal transparent visible={modalCodigoVisivel} animationType="fade">
-          <View style={styles.modalFundo}>
-            <View style={styles.modalErroCaixa}>
-              <Text style={styles.modalErroTexto}>Código de Verificação</Text>
-              <Text style={styles.modalCodigo}>{codigoGerado}</Text>
-              <TouchableOpacity onPress={() => setModalCodigoVisivel(false)}>
-                <Text style={styles.modalErroFechar}>Fechar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Modal de Erro */}
-        <Modal transparent visible={modalErroVisivel} animationType="fade">
-          <View style={styles.modalFundo}>
-            <View style={styles.modalErroCaixa}>
-              <Text style={styles.modalErroTexto}>{mensagemErro}</Text>
-              <TouchableOpacity onPress={() => setModalErroVisivel(false)}>
-                <Text style={styles.modalErroFechar}>Fechar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+      <View style={styles.formContainer}>
+        {!segundaEtapa ? (
+          <>
+            <TextInput
+              style={estilosGlobais.campoTexto}
+              placeholder="Usuário"
+              placeholderTextColor={cores.textoSecundario}
+              value={usuario}
+              onChangeText={setUsuario}
+            />
+            <TextInput
+              style={estilosGlobais.campoTexto}
+              placeholder="Senha"
+              placeholderTextColor={cores.textoSecundario}
+              secureTextEntry
+              value={senha}
+              onChangeText={setSenha}
+            />
+            <BotaoAcao onPress={verificarCredenciais}>
+              Próximo
+            </BotaoAcao>
+          </>
+        ) : (
+          <>
+            <Text style={estilosGlobais.label}>Digite o código recebido</Text>
+            <TextInput
+              style={estilosGlobais.campoTexto}
+              placeholder="Ex: 1234"
+              placeholderTextColor={cores.textoSecundario}
+              keyboardType="numeric"
+              value={codigoDigitado}
+              onChangeText={setCodigoDigitado}
+            />
+            <BotaoAcao onPress={verificarCodigo}>
+              Verificar
+            </BotaoAcao>
+          </>
+        )}
       </View>
+
+      {/* Modais  estilos globais */}
+      <Modal transparent visible={modalCodigoVisivel} animationType="fade">
+        <View style={estilosGlobais.modalFundo}>
+          <View style={estilosGlobais.modalConteudo}>
+            <Text style={estilosGlobais.modalTitulo}>Código de Verificação</Text>
+            <Text style={styles.modalCodigo}>{codigoGerado}</Text>
+            <TouchableOpacity onPress={() => setModalCodigoVisivel(false)}>
+              <Text style={styles.modalFechar}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal transparent visible={modalErroVisivel} animationType="fade">
+        <View style={estilosGlobais.modalFundo}>
+          <View style={estilosGlobais.modalConteudo}>
+            <Text style={estilosGlobais.modalTitulo}>Atenção</Text>
+            <Text style={estilosGlobais.modalTexto}>{mensagemErro}</Text>
+            <TouchableOpacity onPress={() => setModalErroVisivel(false)}>
+              <Text style={styles.modalFechar}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
+// estilos específicos desta tela
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundoEscuro, // Fundo escuro para manter o padrão
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  input: {
-    backgroundColor: cores.branco,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
-    fontSize: 14,
-    color: cores.azulEscuro, // Cor mais profissional para o texto
-    borderWidth: 1,
-    borderColor: cores.cinzaClaro,
-  },
-  loginButton: {
-    backgroundColor: cores.vermelho, // Usando a cor de destaque vermelha
-    color: cores.branco,
-    textAlign: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    fontWeight: "bold",
-    fontSize: 16,
-    width: "100%",
-  },
-  modalFundo: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalErroCaixa: {
-    backgroundColor: cores.branco,
-    padding: 20,
-    borderRadius: 12,
-    alignItems: "center",
-    width: 300,
-  },
-  modalErroTexto: {
-    fontFamily: "Roboto",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  modalErroFechar: {
-    fontFamily: "Roboto",
-    fontSize: 14,
-    color: cores.vermelho,
-    textAlign: "center",
+  formContainer: {
+    width: '100%',
+    maxWidth: 400, // Limita a largura em telas maiores
   },
   modalCodigo: {
-    fontSize: 24,
-    color: cores.vermelho,
-    fontFamily: "Roboto",
-    marginBottom: 10,
-    textAlign: "center",
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.titulo,
+    fontWeight: tipografia.pesos.bold,
+    color: cores.primaria,
+    marginVertical: 10,
+  },
+  modalFechar: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+    marginTop: 10,
+    textDecorationLine: "underline",
   },
 });

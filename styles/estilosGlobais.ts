@@ -1,205 +1,140 @@
 import { StyleSheet } from "react-native";
 
 export const cores = {
-  fundoEscuro: "#1e1e1e", // Fundo escuro mais neutro
-  azulEscuro: "#2c3e50", // Azul escuro
-  branco: "#fff",
-  textoClaro: "#ecf0f1", // Texto claro
-  cinzaClaro: "#bdc3c7", // Cinza claro para textos secundários
-  vermelho: "#e63946", // Vermelho para destacar botões e interações
-  verdeClaro: "#2a9d8f", // Cor de destaque verde claro
+  fundoEscuro: "#F7B7D2",
+  fundoSuperficie: "#FFFFFF",
+  branco: "#FFFFFF",
+
+  textoClaro: "#333333",
+  textoSecundario: "#777777",
+
+  primaria: "#E95E8B",
+  secundaria: "#FADADD",
+  sucesso: "#2a9d8f",
+  aviso: "#fca311",
+  erro: "#e63946",
+
+  neutra: "#bdc3c7",
+};
+
+export const espacamento = {
+  xs: 4, 
+  s: 8, 
+  m: 12, 
+  l: 16, 
+  xl: 24, 
+  xxl: 32,
+};
+
+export const tipografia = {
+  familia: "Roboto",
+  tamanhos: {
+    titulo: 28, 
+    subtitulo: 22, 
+    corpo: 16, 
+    label: 14, 
+    pequeno: 12,
+  },
+  pesos: {
+    regular: "400" as const, 
+    semiBold: "600" as const, 
+    bold: "700" as const,
+  },
+};
+
+export const bordas = {
+  raioPequeno: 8, 
+  raioMedio: 12, 
+  raioGrande: 16,
+};
+
+export const sombras = {
+  sombraMedia: {
+    shadowColor: "#000", 
+    shadowOpacity: 0.3, 
+    shadowOffset: { width: 0, height: 5 }, 
+    shadowRadius: 10, 
+    elevation: 5,
+  },
 };
 
 export const estilosGlobais = StyleSheet.create({
-  // Containers básicos
   containerCentralizado: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    padding: espacamento.xl, 
     backgroundColor: cores.fundoEscuro,
-  },
-  containerCentralPadding: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
   },
   fundoComOverlay: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+    flex: 1, 
+    width: "100%", 
+    height: "100%", 
     backgroundColor: cores.fundoEscuro,
   },
-
-  // Textos
   titulo: {
-    fontFamily: "Roboto",
-    fontSize: 28,
-    color: cores.branco,
-    textAlign: "center",
-    marginBottom: 20,
+    fontFamily: tipografia.familia, 
+    fontSize: tipografia.tamanhos.titulo, 
+    fontWeight: tipografia.pesos.bold, 
+    color: cores.textoClaro, 
+    textAlign: "center", 
+    marginBottom: espacamento.xl,
   },
   textoSecundario: {
-    fontFamily: "Roboto",
-    fontSize: 14,
-    color: cores.textoClaro,
-    marginBottom: 6,
+    fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.label, color: cores.textoSecundario, marginBottom: espacamento.xs,
   },
   textoNormal: {
-    fontFamily: "Roboto",
-    fontSize: 16,
-    color: cores.textoClaro,
-    marginBottom: 6,
+    fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.corpo, color: cores.textoClaro, marginBottom: espacamento.s,
   },
   label: {
-    fontFamily: "Roboto",
-    fontSize: 14,
-    color: cores.textoClaro,
-    marginBottom: 6,
+    fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.label, color: cores.textoClaro, marginBottom: espacamento.s,
   },
   linkTopo: {
-    color: cores.branco,
-    fontFamily: "Roboto",
-    fontSize: 14,
-    textDecorationLine: "underline", // Adicionando um efeito visual no link
+    color: cores.textoClaro, fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.label, textDecorationLine: "underline",
   },
-
-  // Inputs
   campoTexto: {
-    backgroundColor: cores.branco,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-    color: cores.azulEscuro,
-    borderWidth: 1,
-    borderColor: cores.cinzaClaro,
-    marginBottom: 15,
+    backgroundColor: cores.fundoSuperficie, borderRadius: bordas.raioPequeno, padding: espacamento.m, fontSize: tipografia.tamanhos.label, color: cores.textoClaro, borderWidth: 1, borderColor: cores.neutra, marginBottom: espacamento.l,
   },
   campoMultilinha: {
-    backgroundColor: cores.branco,
-    borderRadius: 10,
-    padding: 12,
-    height: 120,
-    textAlignVertical: "top",
-    fontSize: 14,
-    color: cores.azulEscuro,
-    borderWidth: 1,
-    borderColor: cores.cinzaClaro,
-    marginBottom: 15,
+    backgroundColor: cores.fundoSuperficie, borderRadius: bordas.raioPequeno, padding: espacamento.m, height: 120, textAlignVertical: "top", fontSize: tipografia.tamanhos.label, color: cores.textoClaro, borderWidth: 1, borderColor: cores.neutra, marginBottom: espacamento.l,
   },
-
-  // Botões
   botaoBase: {
-    backgroundColor: cores.vermelho,
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    elevation: 5, // Efeito de sombra
+    backgroundColor: cores.primaria, paddingVertical: espacamento.l - 2, paddingHorizontal: espacamento.xl, borderRadius: bordas.raioMedio, alignItems: "center", ...sombras.sombraMedia,
   },
   botaoSecundario: {
-    backgroundColor: cores.verdeClaro,
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    elevation: 5, // Efeito de sombra
+    backgroundColor: cores.fundoSuperficie, paddingVertical: espacamento.l - 2, paddingHorizontal: espacamento.xl, borderRadius: bordas.raioMedio, alignItems: "center", ...sombras.sombraMedia, borderWidth: 1, borderColor: cores.primaria
   },
   textoBotao: {
-    color: cores.branco,
-    fontFamily: "Roboto",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
+    color: cores.branco, fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.corpo, fontWeight: tipografia.pesos.bold, textAlign: "center",
   },
-
-  // Imagem quadrada para visualização do Pokémon
   caixaImagem: {
-    width: 180,
-    height: 180,
-    borderWidth: 2,
-    borderColor: cores.cinzaClaro,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginTop: 20,
-    alignSelf: "center",
+    width: 180, height: 180, borderWidth: 2, borderColor: cores.neutra, borderRadius: bordas.raioGrande, alignItems: "center", justifyContent: "center", backgroundColor: cores.fundoSuperficie, marginTop: espacamento.xl, alignSelf: "center",
   },
   imagemPokemon: {
-    width: 140,
-    height: 140,
-    borderRadius: 12, // Bordas arredondadas para as imagens
-  },
-
-  // Voltar e logout
-  scroll: {
-    padding: 20,
+    width: 140, height: 140, borderRadius: bordas.raioMedio,
   },
   topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: cores.azulEscuro, // Cor de fundo mais sóbria para a barra
-    paddingVertical: 10,
-    borderRadius: 8, // Barras mais arredondadas
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: espacamento.l, marginBottom: espacamento.xl, backgroundColor: cores.fundoSuperficie, paddingVertical: espacamento.m, borderRadius: bordas.raioPequeno,
   },
   voltarTexto: {
-    color: cores.branco,
-    fontFamily: "Roboto",
-    fontSize: 18,
-    fontWeight: "600",
+    color: cores.textoClaro, fontFamily: tipografia.familia, fontSize: 18, fontWeight: tipografia.pesos.semiBold,
   },
-
-  // Modal Padrão
   modalFundo: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "center", alignItems: "center",
   },
   modalConteudo: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 16,
-    width: "80%",
-    alignItems: "center",
+    backgroundColor: cores.fundoSuperficie, padding: espacamento.xl, borderRadius: bordas.raioGrande, width: "80%", maxWidth: 400, alignItems: "center", borderWidth: 1, borderColor: cores.neutra,
   },
   modalTitulo: {
-    fontFamily: "Roboto",
-    fontSize: 14,
-    color: cores.vermelho,
-    marginBottom: 12,
+    fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.corpo, fontWeight: tipografia.pesos.bold, color: cores.primaria, marginBottom: espacamento.m,
   },
   modalTexto: {
-    fontSize: 12,
-    fontFamily: "Roboto",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 12,
+    fontSize: tipografia.tamanhos.label, fontFamily: tipografia.familia, color: cores.textoClaro, textAlign: "center", marginBottom: espacamento.m,
   },
   modalBotaoFechar: {
-    backgroundColor: cores.verdeClaro,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    marginTop: 10,
+    backgroundColor: cores.primaria, paddingVertical: espacamento.m, paddingHorizontal: espacamento.xl, borderRadius: bordas.raioMedio, marginTop: espacamento.m,
   },
   textoFecharModal: {
-    color: cores.branco,
-    fontFamily: "Roboto",
-    fontSize: 14,
-    textAlign: "center",
+    color: cores.branco, fontFamily: tipografia.familia, fontSize: tipografia.tamanhos.label, textAlign: "center",
   },
 });

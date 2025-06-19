@@ -1,35 +1,31 @@
-// components/BotaoLink.tsx
-import { Text, StyleSheet } from "react-native";
-import { Link } from "expo-router";
+import { Text, StyleProp, ViewStyle, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 import { ReactNode } from "react";
-import { cores } from "../styles/estilosGlobais";
+import { estilosGlobais } from "../styles/estilosGlobais";
 
-export default function BotaoLink({ href, children }: { href: any; children: ReactNode }) {
+// A definição das propriedades
+type BotaoLinkProps = {
+  href: any;
+  children: ReactNode;
+  tipo?: 'primario' | 'secundario';
+  style?: StyleProp<ViewStyle>;
+};
+
+export default function BotaoLink({ href, children, tipo = 'primario', style }: BotaoLinkProps) {
+  const router = useRouter();
+
+  const estiloDoBotao = tipo === 'primario' 
+    ? estilosGlobais.botaoBase 
+    : estilosGlobais.botaoSecundario;
+  
+  // A função que será chamada ao pressionar o botão
+  const handlePress = () => {
+    router.push(href);
+  };
+
   return (
-    <Link href={href} style={styles.botao}>
-      <Text style={styles.texto}>{children}</Text>
-    </Link>
+    <Pressable style={[estiloDoBotao, style]} onPress={handlePress}>
+      <Text style={estilosGlobais.textoBotao}>{children}</Text>
+    </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  botao: {
-    backgroundColor: cores.vermelho, // Usando a cor de destaque vermelha
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    elevation: 5, // Efeito de sombra
-  },
-  texto: {
-    color: cores.branco, // Texto branco para destacar
-    fontFamily: "Roboto",
-    fontSize: 16, // Tamanho de fonte ajustado
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-});

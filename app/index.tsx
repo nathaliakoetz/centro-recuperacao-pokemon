@@ -1,29 +1,51 @@
-import { Text, StyleSheet, View } from "react-native";
+import { Text, View, StyleSheet, Image } from "react-native";
 import BotaoLink from "../components/BotaoLink";
-import { estilosGlobais } from "../styles/estilosGlobais";
-import { cores } from "../styles/estilosGlobais"; // Importando cores
+import { estilosGlobais, espacamento } from "../styles/estilosGlobais";
 
 export default function Home() {
   return (
-    <View style={styles.container}>
-      <View style={estilosGlobais.fundoComOverlay}>
-        <View style={estilosGlobais.containerCentralizado}>
-          <Text style={estilosGlobais.titulo}>Centro de Recuperação Pokémon</Text>
-          <BotaoLink href="/login">Acessar Área Interna</BotaoLink>
-          <BotaoLink href="/loginMedico">Acessar Área Médica</BotaoLink>
-        </View>
+    <View style={estilosGlobais.containerCentralizado}>
+      <View style={styles.tituloContainer}>
+        <Image
+          source={require('../assets/icon-b.png')}
+          style={styles.logo}
+        />
+        <Text style={[estilosGlobais.titulo, styles.tituloCustomizado]}>
+          Centro de Recuperação Pokémon
+        </Text>
+      </View>
+
+      <View style={styles.botoesContainer}>
+        <BotaoLink href="/login" tipo="primario">
+          ÁREA CADASTRO
+        </BotaoLink>
+        <BotaoLink href="/loginMedico" tipo="primario">
+          ÁREA MÉDICA
+        </BotaoLink>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundoEscuro, // Cor de fundo escuro
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    fontFamily: "Roboto", // Aplicando a fonte Roboto
+  tituloContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: espacamento.s,
+  },
+  logo: {
+    width: 460,  
+    height: 460,
+    marginBottom: espacamento.xs, 
+  },
+  tituloCustomizado: {
+    fontSize: 50,
+    marginBottom: 0,
+    textAlign: 'center',
+  },
+  botoesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: espacamento.l,
   },
 });

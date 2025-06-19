@@ -1,39 +1,63 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useFonts } from "@expo-google-fonts/roboto"; // Alterando para a fonte Roboto
-import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { estilosGlobais, tipografia, espacamento, cores } from '../../../styles/estilosGlobais';
+import CardOpcao from '../../../components/CardOpcao';
 
 export default function AreaInterna() {
   const { usuario } = useLocalSearchParams();
   const router = useRouter();
+  const [dataHora, setDataHora] = useState("");
+
+  useEffect(() => {
+    const formatarDataHora = () => {
+      const agora = new Date();
+      const opcoesData = { day: 'numeric', month: 'long', year: 'numeric' } as const;
+      const dataFormatada = agora.toLocaleDateString('pt-BR', opcoesData);
+      const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      setDataHora(`${dataFormatada} - ${horaFormatada}`);
+    };
+    formatarDataHora();
+    const intervalId = setInterval(formatarDataHora, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const opcoes = [
-    { titulo: "Cadastrar PokePaciente", rota: "/(interno)/cadastro/cadastro-check" },
-    { titulo: "Cadastro Urgente", rota: "/(interno)/cadastro/urgente" },
-  ] as const;
+    { titulo: 'AGUARDANDO CONSULTA', rota: '/(interno)/consulta/espera', tipo: 'primario' as const },
+    { titulo: 'AGENDAR CONSULTA', rota: '/(interno)/cadastro/cadastro-check', tipo: 'primario' as const },
+    { titulo: 'URGENTE', rota: '/(interno)/cadastro/urgente', tipo: 'urgente' as const },
+  ];
+
+  const handleLogout = () => {
+    router.replace('/'); 
+  };
 
   return (
-    <View style={estilos.container}>
-      <ScrollView contentContainerStyle={estilosGlobais.scroll}>
-        <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/login")}>
-            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={estilosGlobais.containerCentralizado}>
-          <Text style={[estilosGlobais.titulo, { fontSize: 16, marginBottom: 30 }]}>
+    <View style={estilosGlobais.containerCentralizado}>
+      <View style={styles.header}>
+        <View style={styles.infoUsuarioContainer}>
+          <Text style={styles.bemVindoTexto}>
             Bem-vindo, {usuario}!
           </Text>
+          <Text style={styles.dataHoraTexto}>
+            {dataHora}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={handleLogout}>
+          <Image source={require('../../../assets/sair.png')} style={styles.logoutIcon} />
+        </TouchableOpacity>
+      </View>
 
-          {opcoes.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={estilos.card}
-              onPress={() => router.push({ pathname: item.rota })}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.cardsContainer}>
+          {opcoes.map((item) => (
+            <CardOpcao
+              key={item.rota}
+              onPress={() => router.push(item.rota as any)}
+              tipo={item.tipo}
             >
-              <Text style={estilos.cardTexto}>{item.titulo}</Text>
-            </TouchableOpacity>
+              {item.titulo}
+            </CardOpcao>
           ))}
         </View>
       </ScrollView>
@@ -41,33 +65,49 @@ export default function AreaInterna() {
   );
 }
 
-const estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundoEscuro, // Cor de fundo escuro
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 800,
+    alignItems: 'center',
+    paddingTop: 100,
   },
-  card: {
-    backgroundColor: cores.branco,
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    width: 260,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000", // Adicionando sombra para dar profundidade
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 5, // Para efeito de sombra no Android
+  header: {
+    width: '100%',
+    maxWidth: 800,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'absolute',
+    top: espacamento.xxl,
+    paddingHorizontal: espacamento.s,
   },
-  cardTexto: {
-    fontFamily: "Roboto", // Alterando para a fonte Roboto
-    fontSize: 14,
-    color: cores.vermelho, // Cor mais  destacada para o texto
-    textAlign: "center",
+  infoUsuarioContainer: {
+    flexDirection: 'column',
+  },
+  bemVindoTexto: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    fontWeight: tipografia.pesos.semiBold,
+    color: cores.textoClaro,
+  },
+  dataHoraTexto: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+  },
+  logoutIcon: {
+    width: 30,
+    height: 30,
+    tintColor: cores.textoSecundario,
+  },
+  cardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: espacamento.xl,
+    width: '100%',
   },
 });
