@@ -1,51 +1,83 @@
-import { Text, View, StyleSheet, Image } from "react-native";
-import BotaoLink from "../components/BotaoLink";
-import { estilosGlobais, espacamento } from "../styles/estilosGlobais";
+import { View, StyleSheet, Image, Text } from 'react-native';
+import BotaoLink from '../components/BotaoLink';
+import { 
+  estilosGlobais, 
+  espacamento, 
+  cores, 
+  tipografia, 
+  bordas, 
+  sombras 
+} from '../styles/estilosGlobais';
 
 export default function Home() {
   return (
     <View style={estilosGlobais.containerCentralizado}>
-      <View style={styles.tituloContainer}>
+      <View style={styles.cardPrincipal}>
+
         <Image
-          source={require('../assets/icon-b.png')}
+          source={require('../assets/logo.png')}
           style={styles.logo}
         />
-        <Text style={[estilosGlobais.titulo, styles.tituloCustomizado]}>
-          Centro de Recuperação Pokémon
-        </Text>
-      </View>
 
-      <View style={styles.botoesContainer}>
-        <BotaoLink href="/login" tipo="primario">
-          ÁREA CADASTRO
-        </BotaoLink>
-        <BotaoLink href="/loginMedico" tipo="primario">
-          ÁREA MÉDICA
-        </BotaoLink>
+        <Text style={styles.titulo}>
+          BEM-VINDO AO CENTRO DE RECUPERAÇÃO POKÉMON
+        </Text>
+
+        <Text style={styles.subtitulo}>
+          Escolha seu tipo de acesso para continuar.
+        </Text>
+        
+        <View style={styles.botoesContainer}>
+          <BotaoLink href="/login" style={styles.botaoCustomizado}>
+            ÁREA CADASTRO
+          </BotaoLink>
+          
+          <BotaoLink href="/loginMedico" style={styles.botaoCustomizado}>
+            ÁREA MÉDICA
+          </BotaoLink>
+        </View>
+
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tituloContainer: {
+  cardPrincipal: {
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    padding: espacamento.xxl,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: espacamento.s,
+    width: '100%',
+    maxWidth: 850,
+    ...sombras.sombraMedia,
   },
   logo: {
-    width: 460,  
-    height: 460,
-    marginBottom: espacamento.xs, 
+    width: 350,
+    height: 350,
+    resizeMode: 'contain',
+    marginBottom: espacamento.m,
   },
-  tituloCustomizado: {
-    fontSize: 50,
-    marginBottom: 0,
+  titulo: {
+    fontFamily: tipografia.familia,
+    fontSize: 36,
+    color: cores.textoClaro,
     textAlign: 'center',
+    marginBottom: espacamento.xs,
+  },
+  subtitulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.corpo,
+    color: cores.textoSecundario,
+    textAlign: 'center',
+    marginBottom: espacamento.xxl,
   },
   botoesContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: espacamento.l,
+  },
+  botaoCustomizado: {
+    paddingVertical: espacamento.m,
+    paddingHorizontal: espacamento.xl,
   },
 });

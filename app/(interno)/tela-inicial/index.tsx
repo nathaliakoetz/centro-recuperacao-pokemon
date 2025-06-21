@@ -1,113 +1,133 @@
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
-import { estilosGlobais, tipografia, espacamento, cores } from '../../../styles/estilosGlobais';
-import CardOpcao from '../../../components/CardOpcao';
+import {
+  estilosGlobais,
+  tipografia,
+  espacamento,
+  cores,
+  bordas,
+  sombras,
+} from '../../../styles/estilosGlobais';
+import CardOpcao from '../../../components/CardOpcao'; 
 
 export default function AreaInterna() {
   const { usuario } = useLocalSearchParams();
   const router = useRouter();
-  const [dataHora, setDataHora] = useState("");
-
-  useEffect(() => {
-    const formatarDataHora = () => {
-      const agora = new Date();
-      const opcoesData = { day: 'numeric', month: 'long', year: 'numeric' } as const;
-      const dataFormatada = agora.toLocaleDateString('pt-BR', opcoesData);
-      const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      setDataHora(`${dataFormatada} - ${horaFormatada}`);
-    };
-    formatarDataHora();
-    const intervalId = setInterval(formatarDataHora, 60000);
-    return () => clearInterval(intervalId);
-  }, []);
 
   const opcoes = [
-    { titulo: 'AGUARDANDO CONSULTA', rota: '/(interno)/consulta/espera', tipo: 'primario' as const },
-    { titulo: 'AGENDAR CONSULTA', rota: '/(interno)/cadastro/cadastro-check', tipo: 'primario' as const },
-    { titulo: 'URGENTE', rota: '/(interno)/cadastro/urgente', tipo: 'urgente' as const },
+    {
+      titulo: 'Registrar para Consulta',
+      rota: '/(interno)/cadastro/cadastro-check',
+      tipo: 'primario' as const,
+    },
+      {
+      titulo: 'Aguardando para Consulta',
+      rota: '/(interno)/consulta/espera',
+      tipo: 'primario' as const,
+    },
+    {
+      titulo: 'URGENTE',
+      rota: '/(interno)/cadastro/urgente',
+      tipo: 'urgente' as const,
+    },
   ];
 
   const handleLogout = () => {
-    router.replace('/'); 
+    router.replace('/');
   };
 
   return (
     <View style={estilosGlobais.containerCentralizado}>
-      <View style={styles.header}>
-        <View style={styles.infoUsuarioContainer}>
-          <Text style={styles.bemVindoTexto}>
-            Bem-vindo, {usuario}!
-          </Text>
-          <Text style={styles.dataHoraTexto}>
-            {dataHora}
-          </Text>
+      <View style={styles.cardPrincipal}>
+        
+        <View style={styles.header}>
+          <Text style={styles.bemVindoTexto}>Olá, {usuario}!</Text>
+          <TouchableOpacity onPress={handleLogout}>
+            <Image
+              source={require('../../../assets/sair.png')}
+              style={styles.logoutIcon}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleLogout}>
-          <Image source={require('../../../assets/sair.png')} style={styles.logoutIcon} />
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.cardsContainer}>
-          {opcoes.map((item) => (
-            <CardOpcao
-              key={item.rota}
-              onPress={() => router.push(item.rota as any)}
-              tipo={item.tipo}
-            >
-              {item.titulo}
-            </CardOpcao>
-          ))}
-        </View>
-      </ScrollView>
+        <Image
+          source={require('../../../assets/cadastro.png')}
+          style={styles.imagemPrincipal}
+        />
+
+        <Text style={styles.titulo}>Área de Cadastro</Text>
+
+        <Text style={styles.subtitulo}>
+          Selecione uma das opções abaixo para prosseguir.
+        </Text>
+
+        {opcoes.map((item) => (
+          <CardOpcao
+            key={item.rota}
+            onPress={() => router.push(item.rota as any)}
+            tipo={item.tipo}
+            style={styles.botaoOpcao}
+          >
+            {item.titulo}
+          </CardOpcao>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    width: '100%',
-    maxWidth: 800,
+  cardPrincipal: {
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    padding: espacamento.xl,
     alignItems: 'center',
-    paddingTop: 100,
+    width: '100%',
+    maxWidth: 500,
+    ...sombras.sombraMedia,
   },
   header: {
     width: '100%',
-    maxWidth: 800,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'absolute',
-    top: espacamento.xxl,
-    paddingHorizontal: espacamento.s,
-  },
-  infoUsuarioContainer: {
-    flexDirection: 'column',
+    marginBottom: espacamento.m,
   },
   bemVindoTexto: {
     fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.subtitulo,
-    fontWeight: tipografia.pesos.semiBold,
-    color: cores.textoClaro,
-  },
-  dataHoraTexto: {
-    fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.label,
+    fontSize: tipografia.tamanhos.corpo,
     color: cores.textoSecundario,
   },
   logoutIcon: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
     tintColor: cores.textoSecundario,
   },
-  cardsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: espacamento.xl,
+  imagemPrincipal: {
+    width: 220,
+    height: 220,
+    resizeMode: 'contain',
+    marginBottom: espacamento.m,
+  },
+  titulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.titulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+    marginBottom: espacamento.s,
+  },
+  subtitulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.corpo,
+    color: cores.textoSecundario,
+    textAlign: 'center',
+    marginBottom: espacamento.xl,
+  },
+  botaoOpcao: {
+    flex: 0,
     width: '100%',
+    minHeight: 0,
+    paddingVertical: espacamento.l,
+    marginBottom: espacamento.l,
   },
 });

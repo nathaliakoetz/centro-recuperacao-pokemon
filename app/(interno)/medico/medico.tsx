@@ -141,18 +141,18 @@ const styles = StyleSheet.create({
   modalTitulo: {
     fontFamily: "Roboto", // Tipografia Roboto
     fontSize: 14,
-    color: cores.vermelho, // Usando a cor vermelha do padrão
+    color: cores.erro, // Usando a cor vermelha do padrão
     marginBottom: 12,
   },
   modalNome: {
     fontSize: 14,
-    color: cores.vermelho, // Usando a cor vermelha do padrão
+    color: cores.erro, // Usando a cor vermelha do padrão
     fontWeight: "bold",
     marginBottom: 10,
     fontFamily: "Roboto", // Tipografia Roboto
   },
   inputHistorico: {
-    borderColor: cores.cinzaClaro, // Usando a cor padrão para borda
+    borderColor: cores.neutra, // Usando a cor padrão para borda
     borderWidth: 1,
     borderRadius: 8,
     padding: 10,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   fechar: {
     marginTop: 10,
-    color: cores.vermelho, // Cor para o fechar
+    color: cores.erro, // Cor para o fechar
     fontSize: 12,
     fontFamily: "Roboto", // Tipografia Roboto
   },

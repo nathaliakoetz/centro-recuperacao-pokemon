@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Image, Dimensions, } from "react-native";
 import { router } from "expo-router";
-import { estilosGlobais, cores, tipografia } from "../styles/estilosGlobais";
+import { estilosGlobais, cores, tipografia, espacamento, bordas, sombras } from "../styles/estilosGlobais";
 import BotaoAcao from "../components/BotaoAcao";
 
 export default function Login() {
@@ -13,11 +13,15 @@ export default function Login() {
   const [modalCodigoVisivel, setModalCodigoVisivel] = useState(false);
   const [mensagemErro, setMensagemErro] = useState("");
   const [modalErroVisivel, setModalErroVisivel] = useState(false);
-  const [carregando, setCarregando] = useState(true);
+  
+  const [larguraTela, setLarguraTela] = useState(Dimensions.get('window').width);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setCarregando(false), 1000);
-    return () => clearTimeout(timeout);
+    const aoMudar = () => {
+      setLarguraTela(Dimensions.get('window').width);
+    };
+    const subscription = Dimensions.addEventListener('change', aoMudar);
+    return () => subscription?.remove();
   }, []);
 
   const gerarCodigo = () => {
@@ -31,7 +35,7 @@ export default function Login() {
     if (usuario === "admin" && senha === "1234") {
       gerarCodigo();
     } else {
-      setMensagemErro("Usuário ou senha inválidos");
+      setMensagemErro("Usuário ou senha inválidos.");
       setModalErroVisivel(true);
     }
   };
@@ -45,56 +49,71 @@ export default function Login() {
     if (parseInt(codigoDigitado) === parseInt(codigoGerado)) {
       router.push({ pathname: "/(interno)/tela-inicial", params: { usuario } });
     } else {
-      setMensagemErro("Código de verificação incorreto");
+      setMensagemErro("Código de verificação incorreto.");
       setModalErroVisivel(true);
     }
   };
 
+  const eTelaLarga = larguraTela >= 768;
+
   return (
     <View style={estilosGlobais.containerCentralizado}>
-      <Text style={estilosGlobais.titulo}>Login do Funcionário</Text>
+      <View style={[styles.loginContainer, { flexDirection: eTelaLarga ? 'row' : 'column' }]}>
+        <View style={styles.colunaEsquerda}>
+          
+          <View style={styles.tituloContainer}>
+            <Text style={styles.tituloPrincipal}>CENTRO DE</Text>
+            <Text style={styles.tituloPrincipal}>RECUPERAÇÃO</Text>
+            <Text style={styles.subtituloPokemon}>Pokémon</Text>
+          </View>
 
-      <View style={styles.formContainer}>
-        {!segundaEtapa ? (
-          <>
-            <TextInput
-              style={estilosGlobais.campoTexto}
-              placeholder="Usuário"
-              placeholderTextColor={cores.textoSecundario}
-              value={usuario}
-              onChangeText={setUsuario}
-            />
-            <TextInput
-              style={estilosGlobais.campoTexto}
-              placeholder="Senha"
-              placeholderTextColor={cores.textoSecundario}
-              secureTextEntry
-              value={senha}
-              onChangeText={setSenha}
-            />
-            <BotaoAcao onPress={verificarCredenciais}>
-              Próximo
-            </BotaoAcao>
-          </>
-        ) : (
-          <>
-            <Text style={estilosGlobais.label}>Digite o código recebido</Text>
-            <TextInput
-              style={estilosGlobais.campoTexto}
-              placeholder="Ex: 1234"
-              placeholderTextColor={cores.textoSecundario}
-              keyboardType="numeric"
-              value={codigoDigitado}
-              onChangeText={setCodigoDigitado}
-            />
-            <BotaoAcao onPress={verificarCodigo}>
-              Verificar
-            </BotaoAcao>
-          </>
-        )}
+          {!segundaEtapa ? (
+            <>
+              <TextInput
+                style={estilosGlobais.campoTexto}
+                placeholder="Usuário"
+                placeholderTextColor={cores.textoSecundario}
+                value={usuario}
+                onChangeText={setUsuario}
+              />
+              <TextInput
+                style={estilosGlobais.campoTexto}
+                placeholder="Senha"
+                placeholderTextColor={cores.textoSecundario}
+                secureTextEntry
+                value={senha}
+                onChangeText={setSenha}
+              />
+              <BotaoAcao onPress={verificarCredenciais}>
+                Entrar
+              </BotaoAcao>
+            </>
+          ) : (
+            <>
+              <Text style={estilosGlobais.label}>Digite o código recebido:</Text>
+              <TextInput
+                style={estilosGlobais.campoTexto}
+                placeholder="0000"
+                placeholderTextColor={cores.textoSecundario}
+                keyboardType="numeric"
+                value={codigoDigitado}
+                onChangeText={setCodigoDigitado}
+              />
+              <BotaoAcao onPress={verificarCodigo}>
+                Verificar Código
+              </BotaoAcao>
+            </>
+          )}
+        </View>
+
+        <View style={styles.colunaDireita}>
+          <Image
+            source={require('../assets/chansey.png')}
+            style={styles.imagemChansey}
+          />
+        </View>
       </View>
 
-      {/* Modais  estilos globais */}
       <Modal transparent visible={modalCodigoVisivel} animationType="fade">
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
@@ -122,15 +141,48 @@ export default function Login() {
   );
 }
 
-// estilos específicos desta tela
 const styles = StyleSheet.create({
-  formContainer: {
+  loginContainer: {
     width: '100%',
-    maxWidth: 400, // Limita a largura em telas maiores
+    maxWidth: 900,
+    padding: espacamento.xl,
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    ...sombras.sombraMedia,
+  },
+  colunaEsquerda: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingRight: espacamento.xl,
+  },
+  colunaDireita: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagemChansey: {
+    width: '100%',
+    height: 400,
+    resizeMode: 'contain',
+  },
+  tituloContainer: {
+    marginBottom: espacamento.xxl,
+  },
+  tituloPrincipal: {
+    fontFamily: tipografia.familia,
+    fontSize: 42,
+    lineHeight: 45,
+    color: cores.textoClaro,
+  },
+  subtituloPokemon: {
+    fontFamily: tipografia.familia,
+    fontSize: 42,
+    lineHeight: 45,
+    color: cores.primaria,
   },
   modalCodigo: {
     fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.titulo,
+    fontSize: tipografia.tamanhos.titulo + 10,
     fontWeight: tipografia.pesos.bold,
     color: cores.primaria,
     marginVertical: 10,
