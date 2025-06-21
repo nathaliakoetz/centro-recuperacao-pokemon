@@ -8,7 +8,7 @@ import {
   bordas,
   sombras,
 } from '../../../styles/estilosGlobais';
-import CardOpcao from '../../../components/CardOpcao'; 
+import CardOpcao from '../../../components/CardOpcao';
 
 export default function AreaInterna() {
   const { usuario } = useLocalSearchParams();
@@ -20,7 +20,7 @@ export default function AreaInterna() {
       rota: '/(interno)/cadastro/cadastro-check',
       tipo: 'primario' as const,
     },
-      {
+    {
       titulo: 'Aguardando para Consulta',
       rota: '/(interno)/consulta/espera',
       tipo: 'primario' as const,

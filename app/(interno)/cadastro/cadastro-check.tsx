@@ -1,72 +1,104 @@
-import { View, Text, StyleSheet, Button, ScrollView, TouchableOpacity } from "react-native";
-import { router } from "expo-router";
-import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { cores } from "../../../styles/estilosGlobais"; // Importando cores
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+  estilosGlobais,
+  cores,
+  espacamento,
+  bordas,
+  sombras,
+  tipografia,
+} from '../../../styles/estilosGlobais';
+import BotaoAcao from '../../../components/BotaoAcao';
 
 export default function CadastroCheck() {
+  const router = useRouter();
+
   return (
-    <View style={estilos.container}>
-      <ScrollView contentContainerStyle={estilosGlobais.scroll}>
-        <View style={estilosGlobais.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
-            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.replace("/login")}>
-            <Text style={estilosGlobais.linkTopo}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={estilosGlobais.containerCentralizado}>
+      <View style={styles.cardPrincipal}>
+        
+        <TouchableOpacity 
+          style={styles.voltarContainer} 
+          onPress={() => router.back()}
+        >
+          <Image
+            source={require('../../../assets/voltar.png')}
+            style={styles.voltarIcon}
+          />
+        </TouchableOpacity>
 
-        <View style={estilosGlobais.containerCentralizado}>
-          <Text style={[estilosGlobais.titulo, { fontSize: 14, marginBottom: 30 }]}>
-            O Pokémon já está cadastrado?
-          </Text>
+        <Image
+          source={require('../../../assets/check.png')}
+          style={styles.imagemPrincipal}
+        />
+
+        <Text style={styles.titulo}>
+          O Pokémon já possui cadastro?
+        </Text>
+
+        <View style={styles.botoesContainer}>
+          <BotaoAcao
+            onPress={() => router.push('/(interno)/cadastro/buscar-id')}
+            style={styles.botaoCustomizado}
+            tipo="primario"
+          >
+            Sim
+          </BotaoAcao>
           
-          <View style={estilos.botoes}>
-            <TouchableOpacity
-              style={[estilos.botao, { backgroundColor: cores.azulEscuro }]}
-              onPress={() => router.push("/(interno)/cadastro/buscar-id")}
-            >
-              <Text style={estilos.textoBotao}>Sim</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[estilos.botao, { backgroundColor: cores.vermelho }]}
-              onPress={() => router.push("/(interno)/cadastro/cadastro")}
-            >
-              <Text style={estilos.textoBotao}>Não</Text>
-            </TouchableOpacity>
-          </View>
+          <BotaoAcao
+            onPress={() => router.push('/(interno)/cadastro/cadastro')}
+            style={styles.botaoCustomizado}
+            tipo="secundario"
+          >
+            Não
+          </BotaoAcao>
         </View>
-      </ScrollView>
+        
+      </View>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  cardPrincipal: {
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    padding: espacamento.xl,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 550,
+    ...sombras.sombraMedia,
+  },
+  voltarContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: espacamento.m,
+  },
+  voltarIcon: {
+    width: 30,
+    height: 30,
+    tintColor: cores.textoSecundario,
+  },
+  imagemPrincipal: {
+    width: 220,
+    height: 220,
+    resizeMode: 'contain',
+    marginBottom: espacamento.l,
+  },
+  titulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+    marginBottom: espacamento.xxl,
+  },
+  botoesContainer: {
+    flexDirection: 'row',
+    gap: espacamento.l,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  botaoCustomizado: {
     flex: 1,
-    backgroundColor: cores.fundoEscuro, // Usando o fundo escuro
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  botoes: {
-    flexDirection: "row",
-    gap: 20,
-    justifyContent: "center",
-    marginTop: 30,
-  },
-  botao: {
-    backgroundColor: cores.azulEscuro, // Cor de fundo dos botões
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textoBotao: {
-    color: cores.branco,
-    fontSize: 16,
-    fontWeight: "bold",
+    paddingVertical: espacamento.m,
   },
 });

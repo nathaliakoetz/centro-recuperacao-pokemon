@@ -1,28 +1,38 @@
-import { Text, StyleProp, ViewStyle, Pressable, PressableProps, GestureResponderEvent } from "react-native";
-import { ReactNode } from "react";
-import { estilosGlobais } from "../styles/estilosGlobais";
+import { Text, StyleProp, ViewStyle, Pressable, PressableProps, GestureResponderEvent, } from 'react-native';
+import { ReactNode } from 'react';
+import { estilosGlobais } from '../styles/estilosGlobais';
 
-// propriedades que o botão pode receber
-interface BotaoAcaoProps {
+interface BotaoAcaoProps extends PressableProps {
   children: ReactNode;
-  onPress: (event: GestureResponderEvent) => void;
   tipo?: 'primario' | 'secundario';
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
 }
 
-export default function BotaoAcao({ children, onPress, tipo = 'primario', style }: BotaoAcaoProps) {
-  const estiloDoBotao = tipo === 'primario' 
-    ? estilosGlobais.botaoBase 
-    : estilosGlobais.botaoSecundario;
+export default function BotaoAcao({
+  children,
+  onPress,
+  tipo = 'primario',
+  style,
+  disabled,
+  ...rest
+}: BotaoAcaoProps) {
+  const estiloDoBotao =
+    tipo === 'primario'
+      ? estilosGlobais.botaoBase
+      : estilosGlobais.botaoSecundario;
 
   return (
     <Pressable
       style={({ pressed }) => [
         estiloDoBotao,
         style,
-        pressed && { opacity: 0.8 } // Efeito de feedback ao pressionar
+        pressed && { opacity: 0.8 },
+        disabled && { opacity: 0.5 },
       ]}
       onPress={onPress}
+      disabled={disabled}
+      {...rest}
     >
       <Text style={estilosGlobais.textoBotao}>{children}</Text>
     </Pressable>

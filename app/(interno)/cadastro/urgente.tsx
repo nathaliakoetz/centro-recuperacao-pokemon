@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,202 +5,376 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  FlatList,
   StyleSheet,
   Modal,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { cores } from "../../../styles/estilosGlobais"; // Importando cores
-import { salvarPokemon } from "../../../utils/salvarPokemon";
-import { buscarDadosPorEspecie } from "../../../utils/pokeapi";
-import axios from "axios";
-import * as Animatable from "react-native-animatable";
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import {
+  estilosGlobais,
+  cores,
+  espacamento,
+  bordas,
+  sombras,
+  tipografia,
+} from '../../../styles/estilosGlobais';
+import { salvarPokemon, PokemonCadastro } from '../../../utils/salvarPokemon';
+import { buscarDadosPorEspecie, DadosPokemon } from '../../../utils/pokeapi';
+import axios from 'axios';
+import BotaoAcao from '../../../components/BotaoAcao';
+
+type ErrosCadastroUrgente = Partial<
+  Pick<PokemonCadastro, 'nomeTreinador' | 'especiePokemon' | 'descricao'>
+>;
 
 export default function CadastroUrgente() {
   const router = useRouter();
-  const [especiePokemon, setEspeciePokemon] = useState("");
-  const [tipoPokemon, setTipoPokemon] = useState("");
-  const [imagemPokemon, setImagemPokemon] = useState("");
-  const [nomeTreinador, setNomeTreinador] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [modalVisivel, setModalVisivel] = useState(false);
+
+  const [nomeTreinador, setNomeTreinador] = useState('');
+  const [especiePokemon, setEspeciePokemon] = useState('');
+  const [tipoPokemon, setTipoPokemon] = useState('');
+  const [imagemPokemon, setImagemPokemon] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [listaSugestoes, setListaSugestoes] = useState<any[]>([]);
   const [todasEspecies, setTodasEspecies] = useState<any[]>([]);
+  const [modalMensagem, setModalMensagem] = useState('');
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [cadastroSucesso, setCadastroSucesso] = useState(false);
+  const [errors, setErrors] = useState<ErrosCadastroUrgente>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    axios.get("https://pokeapi.co/api/v2/pokemon?limit=2000")
-      .then(res => setTodasEspecies(res.data.results.filter((pokemon: any) => !pokemon.name.includes('mega')))) // Filtrando Mega Pokémons
+    axios
+      .get('https://pokeapi.co/api/v2/pokemon?limit=2000')
+      .then((res) =>
+        setTodasEspecies(
+          res.data.results.filter(
+            (p: any) => !p.name.includes('-')
+          )
+        )
+      )
       .catch(() => setTodasEspecies([]));
   }, []);
 
-  const buscarEspecie = async () => {
-    if (!especiePokemon.trim()) return;
-    const dados = await buscarDadosPorEspecie(especiePokemon);
+  const buscarEspecie = async (nome: string) => {
+    setEspeciePokemon(nome);
+    if (nome.length < 3) {
+      setListaSugestoes([]);
+      return;
+    }
+    const filtradas = todasEspecies
+      .filter((p) => p.name.toLowerCase().includes(nome.toLowerCase()))
+      .slice(0, 5);
+    setListaSugestoes(filtradas);
+  };
+
+  const selecionarEspecie = async (nome: string) => {
+    setEspeciePokemon(nome);
+    setListaSugestoes([]);
+    const dados: DadosPokemon | null = await buscarDadosPorEspecie(nome);
     if (dados) {
-      setTipoPokemon(dados.tipos.join(", "));
+      setEspeciePokemon(dados.nomeEspecie);
+      setTipoPokemon(dados.tipos.join(', '));
       setImagemPokemon(dados.urlImagem);
     }
   };
 
-  const salvar = async () => {
-    if (!especiePokemon || !tipoPokemon || !nomeTreinador || !descricao) return;
+  const validate = () => {
+    const novosErros: ErrosCadastroUrgente = {};
+    if (!nomeTreinador)
+      novosErros.nomeTreinador = 'O nome do treinador é obrigatório.';
+    if (!especiePokemon)
+      novosErros.especiePokemon = 'A espécie do Pokémon é obrigatória.';
+    if (!descricao)
+      novosErros.descricao = 'A descrição do caso é obrigatória.';
+    setErrors(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
 
+  const resetarFormulario = () => {
+    setNomeTreinador('');
+    setEspeciePokemon('');
+    setTipoPokemon('');
+    setImagemPokemon('');
+    setDescricao('');
+    setErrors({});
+  };
+
+  const salvar = async () => {
+    if (!validate()) return;
+    setIsSaving(true);
     const resultado = await salvarPokemon({
       nomePokemon: especiePokemon,
       tipoPokemon,
       especiePokemon,
-      dataCaptura: "",
+      dataCaptura: new Date().toLocaleDateString('pt-BR'),
       foiTroca: false,
       nomeTreinador,
-      idTreinador: "urgente",
+      idTreinador: 'urgente',
       descricao,
       imagem: imagemPokemon,
       urgente: true,
     });
-
+    setIsSaving(false);
     if (resultado.sucesso) {
-      setEspeciePokemon("");
-      setTipoPokemon("");
-      setImagemPokemon("");
-      setNomeTreinador("");
-      setDescricao("");
-      setModalVisivel(true);
+      setModalMensagem('Cadastro de urgência realizado com sucesso!');
+      setCadastroSucesso(true);
+      setMostrarModal(true);
+    } else {
+      setModalMensagem('Erro ao salvar cadastro de urgência.');
+      setCadastroSucesso(false);
+      setMostrarModal(true);
+    }
+  };
+
+  const handleFecharModal = () => {
+    setMostrarModal(false);
+    if (cadastroSucesso) {
+      resetarFormulario();
+      router.push('/(interno)/tela-inicial');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={estilosGlobais.containerCentralizado}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
-          <TouchableOpacity onPress={() => router.push("/(interno)/tela-inicial")}>
-            <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.formContainer}>
-          <Text style={[estilosGlobais.titulo, { marginVertical: 30 }]}>Cadastro Urgente</Text>
-
-          <View style={styles.inputGroup}>
-            <Text style={estilosGlobais.label}>Espécie do Pokémon *</Text>
-            <TextInput
-              style={estilosGlobais.campoTexto}
-              value={especiePokemon}
-              onChangeText={setEspeciePokemon}
-              onBlur={buscarEspecie}
-              placeholder="Ex: Pikachu"
+        <View style={styles.cardPrincipal}>
+          <TouchableOpacity
+            style={styles.voltarContainer}
+            onPress={() => router.back()}
+          >
+            <Image
+              source={require('../../../assets/voltar.png')}
+              style={styles.voltarIcon}
             />
+          </TouchableOpacity>
+          <View style={styles.tituloContainer}>
+            <Text style={styles.titulo}>Atendimento Urgente</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={estilosGlobais.label}>Tipo</Text>
-            <TextInput style={estilosGlobais.campoTexto} value={tipoPokemon} editable={false} />
-          </View>
+          <View style={styles.colunasContainer}>
+            <View style={styles.coluna}>
+              <Text style={estilosGlobais.label}>Nome do Treinador *</Text>
+              <TextInput
+                style={[
+                  estilosGlobais.campoTexto,
+                  errors.nomeTreinador && styles.campoComErro,
+                ]}
+                value={nomeTreinador}
+                onChangeText={setNomeTreinador}
+                placeholderTextColor={cores.textoSecundario}
+              />
+              {errors.nomeTreinador && (
+                <Text style={styles.textoErro}>{errors.nomeTreinador}</Text>
+              )}
 
-          {imagemPokemon && (
-            <View style={[estilosGlobais.caixaImagem, styles.inputGroup]}>
-              <Image source={{ uri: imagemPokemon }} style={estilosGlobais.imagemPokemon} />
+              <Text style={estilosGlobais.label}>Espécie do Pokémon *</Text>
+              <TextInput
+                style={[
+                  estilosGlobais.campoTexto,
+                  errors.especiePokemon && styles.campoComErro,
+                ]}
+                value={especiePokemon}
+                onChangeText={buscarEspecie}
+                placeholder="Digite para buscar"
+                placeholderTextColor={cores.textoSecundario}
+              />
+              {errors.especiePokemon && (
+                <Text style={styles.textoErro}>{errors.especiePokemon}</Text>
+              )}
+
+              {listaSugestoes.length > 0 && (
+                <FlatList
+                  style={styles.listaSugestoes}
+                  data={listaSugestoes}
+                  keyExtractor={(item) => item.name}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      onPress={() => selecionarEspecie(item.name)}
+                      style={styles.sugestaoItem}
+                    >
+                      <Image
+                        source={{
+                          uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+                            item.url.split('/')[6]
+                          }.png`,
+                        }}
+                        style={styles.sugestaoImagem}
+                      />
+                      <Text style={styles.sugestaoTexto}>{item.name}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+
+              <Text style={estilosGlobais.label}>Tipo(s)</Text>
+              <TextInput
+                style={estilosGlobais.campoTexto}
+                value={tipoPokemon}
+                editable={false}
+              />
             </View>
-          )}
 
-          <View style={styles.inputGroup}>
-            <Text style={estilosGlobais.label}>Nome do Treinador *</Text>
-            <TextInput
-              style={estilosGlobais.campoTexto}
-              value={nomeTreinador}
-              onChangeText={setNomeTreinador}
-            />
+            <View style={styles.coluna}>
+              <Text style={estilosGlobais.label}>Descrição do Caso *</Text>
+              <TextInput
+                style={[
+                  estilosGlobais.campoMultilinha,
+                  styles.campoDescricao,
+                  errors.descricao && styles.campoComErro,
+                ]}
+                multiline
+                value={descricao}
+                onChangeText={setDescricao}
+                placeholderTextColor={cores.textoSecundario}
+              />
+              {errors.descricao && (
+                <Text style={styles.textoErro}>{errors.descricao}</Text>
+              )}
+            </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={estilosGlobais.label}>Descrição *</Text>
-            <TextInput
-              style={estilosGlobais.campoMultilinha}
-              multiline
-              value={descricao}
-              onChangeText={setDescricao}
-            />
-          </View>
-
-          <TouchableOpacity style={[estilosGlobais.botaoBase, styles.inputGroup]} onPress={salvar}>
-            <Text style={estilosGlobais.textoBotao}>Salvar Cadastro</Text>
-          </TouchableOpacity>
+          <BotaoAcao
+            onPress={salvar}
+            style={{ marginTop: espacamento.l, width: '100%' }}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator color={cores.branco} />
+            ) : (
+              'Salvar Atendimento'
+            )}
+          </BotaoAcao>
         </View>
-
-        {/* Modal de sucesso */}
-        <Modal transparent visible={modalVisivel} animationType="fade">
-          <View style={styles.modalFundo}>
-            <Animatable.View
-              animation="bounceIn"
-              duration={1000}
-              style={styles.modalConteudo}
-            >
-              <Text style={styles.modalTexto}>Pokémon cadastrado com sucesso!</Text>
-              <TouchableOpacity onPress={() => setModalVisivel(false)} style={styles.modalBotao}>
-                <Text style={styles.modalBotaoTexto}>Fechar</Text>
-              </TouchableOpacity>
-            </Animatable.View>
-          </View>
-        </Modal>
       </ScrollView>
+
+      <Modal
+        visible={mostrarModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleFecharModal}
+      >
+        <View style={estilosGlobais.modalFundo}>
+          <View style={estilosGlobais.modalConteudo}>
+            {cadastroSucesso && (
+              <Image
+                source={require('../../../assets/sucesso.png')}
+                style={styles.modalImagem}
+              />
+            )}
+            <Text style={estilosGlobais.modalTexto}>{modalMensagem}</Text>
+            <TouchableOpacity onPress={handleFecharModal}>
+              <Text style={styles.modalFechar}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    padding: 20,
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: espacamento.xl,
   },
-  formContainer: {
-    maxWidth: 600,
-    width: "100%",
-    alignSelf: "center",
+  cardPrincipal: {
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    padding: espacamento.xl,
+    width: '100%',
+    maxWidth: 900,
+    ...sombras.sombraMedia,
   },
-  inputGroup: {
-    marginBottom: 20,
+  voltarContainer: {
+    alignSelf: 'flex-start',
+    position: 'absolute',
+    top: espacamento.l,
+    left: espacamento.l,
+    zIndex: 1,
   },
-  modalFundo: {
+  voltarIcon: {
+    width: 30,
+    height: 30,
+    tintColor: cores.textoSecundario,
+  },
+  tituloContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: espacamento.xl,
+  },
+  titulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.titulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+  },
+  urgenteIcon: {
+    width: 30,
+    height: 30,
+    marginLeft: espacamento.m,
+  },
+  colunasContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: espacamento.xl,
+  },
+  coluna: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+    minWidth: 300,
   },
-  modalConteudo: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 16,
-    alignItems: "center",
-    width: "70%",
-    borderWidth: 3,
-    borderColor: "#e63946",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 10,
+  campoDescricao: {
+    height: 220,
   },
-  modalTexto: {
-    fontSize: 14,
-    color: "#e63946",
-    fontFamily: "Roboto",
-    textAlign: "center",
-    marginBottom: 20,
+  listaSugestoes: {
+    backgroundColor: '#3c3c3e',
+    borderRadius: bordas.raioPequeno,
+    marginTop: -espacamento.l,
+    marginBottom: espacamento.l,
+    maxHeight: 180,
   },
-  modalBotao: {
-    backgroundColor: "#e63946",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+  sugestaoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: espacamento.m,
+    borderBottomWidth: 1,
+    borderBottomColor: cores.fundoSuperficie,
   },
-  modalBotaoTexto: {
-    color: "#fff",
-    fontFamily: "Roboto",
-    fontSize: 10,
+  sugestaoImagem: {
+    width: 40,
+    height: 40,
+    marginRight: espacamento.m,
   },
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundoEscuro, // Usando fundo escuro para manter o padrão
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+  sugestaoTexto: {
+    color: cores.textoClaro,
+    fontSize: tipografia.tamanhos.corpo,
+  },
+  campoComErro: {
+    borderColor: cores.erro,
+    borderWidth: 1,
+  },
+  textoErro: {
+    color: cores.erro,
+    fontSize: tipografia.tamanhos.pequeno,
+    marginTop: -espacamento.l + 4,
+    marginBottom: espacamento.m,
+    fontWeight: 'bold',
+  },
+  modalImagem: {
+    width: 80,
+    height: 80,
+    marginBottom: espacamento.l,
+  },
+  modalFechar: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.primaria,
+    marginTop: espacamento.m,
+    textDecorationLine: 'underline',
   },
 });

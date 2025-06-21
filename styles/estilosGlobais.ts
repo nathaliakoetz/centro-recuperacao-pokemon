@@ -10,8 +10,8 @@ export const cores = {
   textoClaro: "#F5F5F7",
   textoSecundario: "#A9A9A9",
   
-  // Cores de Ação e Semânticas (Baseadas no Logo)
-  primaria: "#dc533e",         // O vermelho-coral 
+  // Cores de Ação e Semânticas (Baseadas no Novo Logo)
+  primaria: "#F08080",         // O vermelho-coral 
   secundaria: "#F8B8C2",       // O rosa-pêssego do corpo da Chansey
   acento: "#FDF5E6",           // O creme do ovo da Chansey
   
