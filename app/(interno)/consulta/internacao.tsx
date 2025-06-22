@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,24 @@ import {
   StyleSheet,
   Modal,
   TextInput,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { estilosGlobais } from "../../../styles/estilosGlobais";
-import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
-import { useRouter } from "expo-router";
-import { PokemonCadastro } from "../../../utils/salvarPokemon";
+import { useRouter, useFocusEffect } from "expo-router";
+import { Feather } from '@expo/vector-icons';
+import * as Animatable from 'react-native-animatable';
+import {
+  estilosGlobais,
+  cores,
+  espacamento,
+  bordas,
+  sombras,
+  tipografia,
+} from "../../../styles/estilosGlobais";
+import { PokemonCadastro, EntradaHistorico } from "../../../utils/salvarPokemon";
+import BotaoAcao from "../../../components/BotaoAcao";
 
 export default function Internacao() {
   const router = useRouter();
@@ -22,27 +34,34 @@ export default function Internacao() {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonSelecionado, setPokemonSelecionado] = useState<PokemonCadastro | null>(null);
   const [novaAtualizacao, setNovaAtualizacao] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => {
-    const carregarInternados = async () => {
-      try {
-        const todasChaves = await AsyncStorage.getAllKeys();
-        const chavesPokemons = todasChaves.filter((k) => k.startsWith("pokemons:"));
-        const registros = await AsyncStorage.multiGet(chavesPokemons);
+  const carregarInternados = async () => {
+    setCarregando(true);
+    try {
+      const todasChaves = await AsyncStorage.getAllKeys();
+      const chavesPokemons = todasChaves.filter((k) => k.startsWith("pokemons:"));
+      const registros = await AsyncStorage.multiGet(chavesPokemons);
 
-        const todosPokemons: PokemonCadastro[] = registros
-          .flatMap(([, val]) => JSON.parse(val || "[]"))
-          .filter((p: PokemonCadastro) => p.internado && !p.finalizado);
+      const todosPokemons: PokemonCadastro[] = registros
+        .flatMap(([, val]) => JSON.parse(val || "[]"))
+        .filter((p: PokemonCadastro) => p.internado && !p.finalizado);
 
-        setInternados(todosPokemons);
-      } catch (err) {
-        console.error("Erro ao buscar internados:", err);
-      } finally {
-        setCarregando(false);
-      }
-    };
-    carregarInternados();
-  }, []);
+      setInternados(todosPokemons);
+    } catch (err) {
+      console.error("Erro ao buscar internados:", err);
+    } finally {
+      setCarregando(false);
+    }
+  };
+  
+  useFocusEffect(
+    useMemo(() => {
+      return () => {
+        carregarInternados();
+      };
+    }, [])
+  );
 
   const abrirModal = (pokemon: PokemonCadastro) => {
     setPokemonSelecionado(pokemon);
@@ -50,86 +69,186 @@ export default function Internacao() {
     setModalVisivel(true);
   };
 
+  const salvarAtualizacao = async () => {
+    if (!pokemonSelecionado) return;
+    if (!novaAtualizacao.trim()) {
+      Alert.alert("Atenção", "Por favor, adicione uma anotação para salvar.");
+      return;
+    }
+    
+    setIsUpdating(true);
+    const chave = `pokemons:${pokemonSelecionado.idTreinador}`;
+    
+    try {
+      const dados = await AsyncStorage.getItem(chave);
+      if (!dados) throw new Error("Registro do treinador não encontrado.");
+
+      let lista: PokemonCadastro[] = JSON.parse(dados);
+      const historicoAtual = pokemonSelecionado.historico || [];
+      const novaEntrada: EntradaHistorico = {
+        data: new Date().toLocaleString(),
+        descricao: novaAtualizacao,
+      };
+
+      const novaLista = lista.map((p) => {
+        if (p.nomePokemon === pokemonSelecionado.nomePokemon && p.idTreinador === pokemonSelecionado.idTreinador) {
+          return { ...p, historico: [...historicoAtual, novaEntrada] };
+        }
+        return p;
+      });
+      
+      await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
+      setPokemonSelecionado(prevState => ({ ...prevState!, historico: [...historicoAtual, novaEntrada] }));
+      setNovaAtualizacao("");
+      
+    } catch (err) {
+        Alert.alert("Erro", "Não foi possível salvar a atualização.");
+    } finally {
+        setIsUpdating(false);
+    }
+  };
+  
   const liberarPokemon = async () => {
     if (!pokemonSelecionado) return;
 
+    setIsUpdating(true);
+
+    const finalNote = novaAtualizacao.trim() || "Recebeu alta da internação.";
     const chave = `pokemons:${pokemonSelecionado.idTreinador}`;
-    const dados = await AsyncStorage.getItem(chave);
-    if (!dados) return;
 
-    const lista: PokemonCadastro[] = JSON.parse(dados);
+    try {
+        const dados = await AsyncStorage.getItem(chave);
+        if (!dados) throw new Error("Registro do treinador não encontrado.");
 
-    const novaLista = lista.map((p) =>
-      p.nomePokemon === pokemonSelecionado.nomePokemon
-        ? { ...p, internado: false, finalizado: true }
-        : p
-    );
+        let lista: PokemonCadastro[] = JSON.parse(dados);
+        const historicoAtual = pokemonSelecionado.historico || [];
+        const novaEntrada: EntradaHistorico = {
+            data: new Date().toLocaleString(),
+            descricao: finalNote,
+        };
 
-    await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
-    setInternados(novaLista.filter((p) => p.internado && !p.finalizado));
-    setModalVisivel(false);
+        const novaLista = lista.map((p) => {
+            if (p.nomePokemon === pokemonSelecionado.nomePokemon && p.idTreinador === pokemonSelecionado.idTreinador) {
+                return {
+                    ...p,
+                    internado: false,
+                    finalizado: true,
+                    historico: [...historicoAtual, novaEntrada]
+                };
+            }
+            return p;
+        });
+
+        await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
+        await carregarInternados();
+        setModalVisivel(false);
+
+    } catch (err) {
+        Alert.alert("Erro", "Não foi possível liberar o Pokémon.");
+    } finally {
+        setIsUpdating(false);
+    }
   };
 
-  const salvarAtualizacao = async () => {
-    if (!pokemonSelecionado) return;
-
-    const chave = `historico:${pokemonSelecionado.idTreinador}`;
-    const historicoAtual = await AsyncStorage.getItem(chave);
-    const historico = historicoAtual ? JSON.parse(historicoAtual) : [];
-
-    historico.push({
-      data: new Date().toLocaleString(),
-      texto: novaAtualizacao,
-    });
-
-    await AsyncStorage.setItem(chave, JSON.stringify(historico));
-    setNovaAtualizacao("");
-  };
+  const renderItem = ({ item, index }: { item: PokemonCadastro; index: number }) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={500}
+      delay={index * 100}
+    >
+      <TouchableOpacity onPress={() => abrirModal(item)}>
+        <View style={styles.card}>
+          <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
+          <Text style={styles.nomePokemon} numberOfLines={1}>{item.nomePokemon}</Text>
+          <View style={styles.detalheContainer}>
+            <Feather name="user" size={14} color={cores.textoSecundario} />
+            <Text style={styles.detalheCard} numberOfLines={1}>{item.nomeTreinador || '-'}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animatable.View>
+  );
 
   return (
     <View style={estilosGlobais.containerCentralizado}>
-      <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
-        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
-          <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.push('/(interno)/medico/medico')}>
+          <Image source={require('../../../assets/voltar.png')} style={styles.voltarIcon} />
         </TouchableOpacity>
+        <View style={styles.containerTituloHeader}>
+          <Text style={styles.titulo}>Internação</Text>
+          {!carregando && (
+            <Text style={styles.contador}>
+              {internados.length} pacientes internados
+            </Text>
+          )}
+        </View>
+        <View style={{ width: 30 }} />
       </View>
 
-      <FlatList
-        data={internados}
-        keyExtractor={(_, i) => i.toString()}
-        contentContainerStyle={styles.lista}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => abrirModal(item)}>
-            <Image source={{ uri: item.imagem }} style={styles.imagem} />
-            <Text style={styles.nome}>{item.nomePokemon}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {carregando ? (
+        <ActivityIndicator size="large" color={cores.primaria} style={{ flex: 1 }} />
+      ) : internados.length > 0 ? (
+        <FlatList
+          data={internados}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.nomePokemon}-${index}`}
+          contentContainerStyle={styles.listaContainer}
+        />
+      ) : (
+        <View style={styles.containerVazio}>
+          <Image source={require('../../../assets/snorlax.png')} style={styles.imagemVazio} />
+          <Text style={styles.tituloVazio}>Nenhum paciente na internação</Text>
+          <Text style={styles.subtituloVazio}>Os pacientes aparecerão aqui quando forem internados.</Text>
+        </View>
+      )}
 
-      <Modal transparent visible={modalVisivel} animationType="fade">
-        <View style={styles.modalFundo}>
-          <View style={styles.modalConteudo}>
-            <Text style={styles.modalTitulo}>Ficha Médica</Text>
-            <Text style={styles.modalNome}>{pokemonSelecionado?.nomePokemon}</Text>
-            <TextInput
-              style={styles.input}
-              multiline
-              placeholder="Atualização médica..."
-              value={novaAtualizacao}
-              onChangeText={setNovaAtualizacao}
-            />
-            <TouchableOpacity style={styles.botao} onPress={salvarAtualizacao}>
-              <Text style={styles.botaoTexto}>Salvar Atualização</Text>
+      <Modal visible={modalVisivel} transparent animationType="fade" onRequestClose={() => setModalVisivel(false)}>
+        <View style={estilosGlobais.modalFundo}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalVisivel(false)}>
+                <Feather name="x" size={24} color={cores.textoSecundario} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.botao, { backgroundColor: "#e63946" }]}
-              onPress={liberarPokemon}
-            >
-              <Text style={styles.botaoTexto}>Liberar Pokémon</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisivel(false)}>
-              <Text style={styles.fechar}>Fechar</Text>
-            </TouchableOpacity>
+            
+            <View style={styles.colunaImagem}>
+                <Image source={{ uri: pokemonSelecionado?.imagem }} style={styles.modalImagem} />
+            </View>
+            <View style={styles.colunaFormulario}>
+                <Text style={styles.modalTitulo}>{pokemonSelecionado?.nomePokemon}</Text>
+                
+                <View style={styles.historicoContainer}>
+                    <Text style={styles.historicoTitulo}>Histórico Médico</Text>
+                    <ScrollView style={styles.historicoScroll}>
+                        {pokemonSelecionado?.historico?.map((entrada, index) => (
+                            <View key={index} style={styles.historicoItem}>
+                                <Text style={styles.historicoData}>{entrada.data}</Text>
+                                <Text style={styles.historicoDescricao}>{entrada.descricao}</Text>
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
+
+                <Text style={estilosGlobais.label}>Adicionar Nova Anotação</Text>
+                <TextInput
+                    style={[estilosGlobais.campoMultilinha, { height: 80 }]}
+                    placeholder="Adicionar atualização ou nota final..."
+                    placeholderTextColor={cores.textoSecundario}
+                    value={novaAtualizacao}
+                    onChangeText={setNovaAtualizacao}
+                    multiline
+                />
+
+                <BotaoAcao onPress={salvarAtualizacao} tipo="secundario" style={{ marginBottom: espacamento.m }} disabled={isUpdating}>
+                    {isUpdating ? <ActivityIndicator color={cores.primaria} /> : "Salvar Atualização"}
+                </BotaoAcao>
+                <BotaoAcao onPress={liberarPokemon} tipo="primario" disabled={isUpdating}>
+                    {isUpdating ? <ActivityIndicator color={cores.branco} /> : "Liberar Pokémon"}
+                </BotaoAcao>
+
+                <TouchableOpacity onPress={() => setModalVisivel(false)}>
+                    <Text style={styles.modalFechar}>Cancelar</Text>
+                </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -138,87 +257,175 @@ export default function Internacao() {
 }
 
 const styles = StyleSheet.create({
-  lista: {
-    padding: 20,
-    gap: 16,
-    alignItems: "center",
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: espacamento.l,
+    marginBottom: espacamento.l,
+  },
+  voltarIcon: {
+    width: 30,
+    height: 30,
+    tintColor: cores.textoClaro,
+  },
+  containerTituloHeader: {
+    alignItems: 'center',
+  },
+  titulo: {
+    ...estilosGlobais.titulo,
+    marginBottom: 0,
+  },
+  contador: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+  },
+  listaContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: espacamento.m,
   },
   card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    width: 150,
-    margin: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioMedio,
+    padding: espacamento.l,
+    ...sombras.sombraMedia,
+    alignItems: 'center',
+    width: 280,
+    margin: espacamento.s,
   },
-  imagem: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
+  imagemCard: {
+    width: 140,
+    height: 140,
+    resizeMode: 'contain',
+    marginBottom: espacamento.m,
   },
-  nome: {
-    fontWeight: "bold",
-    fontSize: 12,
-    color: "#e63946",
-    fontFamily: "Roboto", // Usando a tipografia Roboto
+  nomePokemon: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    fontWeight: tipografia.pesos.bold,
+    color: cores.textoClaro,
+    marginBottom: espacamento.s,
   },
-  modalFundo: {
+  detalheContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamento.s,
+  },
+  detalheCard: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+  },
+  containerVazio: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: espacamento.xl,
   },
-  modalConteudo: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 16,
-    width: "80%",
-    alignItems: "center",
+  imagemVazio: {
+    width: 420,
+    height: 420,
+    marginBottom: espacamento.xl,
+    resizeMode: 'contain',
+  },
+  tituloVazio: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+    marginBottom: espacamento.s,
+  },
+  subtituloVazio: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.corpo,
+    color: cores.textoSecundario,
+    textAlign: 'center',
+  },
+  modalContainer: {
+    flexDirection: 'column',
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioGrande,
+    width: '90%',
+    maxHeight: '85%',
+    maxWidth: 500,
+    ...sombras.sombraMedia,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  colunaFormulario: {
+    width: '100%',
+    padding: espacamento.l,
+  },
+  colunaImagem: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.fundoEscuro,
+    paddingVertical: espacamento.l,
+  },
+  modalImagem: {
+    width: '80%',
+    height: 150,
+    resizeMode: 'contain',
   },
   modalTitulo: {
-    fontSize: 16,
-    color: "#2a9d8f", // Cor do título do modal
-    fontFamily: "Roboto", // Tipografia Roboto
-    marginBottom: 10,
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.titulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+    marginBottom: espacamento.m,
   },
-  modalNome: {
-    fontSize: 14,
-    color: "#e63946", // Cor do nome do Pokémon
-    fontWeight: "bold",
-    marginBottom: 10,
-    fontFamily: "Roboto", // Tipografia Roboto
+  botaoFecharModal: {
+    position: 'absolute',
+    top: espacamento.m,
+    right: espacamento.m,
+    zIndex: 1,
+    padding: espacamento.s,
   },
-  input: {
-    backgroundColor: "#eee",
-    padding: 10,
-    borderRadius: 10,
-    width: "100%",
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: 12,
-    fontFamily: "Roboto", // Tipografia Roboto
+  modalFechar: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+    marginTop: espacamento.xl,
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
-  botao: {
-    backgroundColor: "#2a9d8f",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginVertical: 5,
+  historicoContainer: {
+    width: '100%',
+    height: 150,
+    backgroundColor: cores.fundoEscuro,
+    borderRadius: bordas.raioPequeno,
+    padding: espacamento.m,
+    marginBottom: espacamento.l,
+    borderWidth: 1,
+    borderColor: '#444',
   },
-  botaoTexto: {
-    color: "#fff",
-    fontFamily: "Roboto", // Tipografia Roboto
-    fontSize: 8,
+  historicoTitulo: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.pequeno,
+    color: cores.textoSecundario,
+    marginBottom: espacamento.s,
+    textTransform: 'uppercase',
   },
-  fechar: {
-    marginTop: 10,
-    color: "#e63946",
-    fontSize: 10,
-    fontFamily: "Roboto", // Tipografia Roboto
+  historicoScroll: {
+    flex: 1,
+  },
+  historicoItem: {
+    marginBottom: espacamento.m,
+  },
+  historicoData: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.pequeno,
+    color: cores.textoSecundario,
+  },
+  historicoDescricao: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoClaro,
   },
 });
