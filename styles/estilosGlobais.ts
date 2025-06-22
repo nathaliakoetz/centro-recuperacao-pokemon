@@ -195,16 +195,18 @@ export const estilosGlobais = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalConteudo: {
-    backgroundColor: cores.fundoSuperficie,
-    padding: espacamento.xl,
-    borderRadius: bordas.raioGrande,
-    width: "80%",
-    maxWidth: 400,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: cores.neutra,
-  },
+modalConteudo: {
+  backgroundColor: cores.fundoSuperficie,
+  borderRadius: bordas.raioMedio,
+  paddingTop: espacamento.l,
+  paddingBottom: 0,
+  maxHeight: '90%',
+  width: '90%',
+  maxWidth: 600,
+  alignSelf: 'center',
+  overflow: 'hidden',
+},
+
   modalTitulo: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.corpo,

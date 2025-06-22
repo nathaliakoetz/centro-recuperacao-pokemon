@@ -192,13 +192,6 @@ export default function ListaEspera() {
               ? `Tente uma busca diferente.`
               : 'A fila de espera está vazia no momento.'}
           </Text>
-          <BotaoAcao
-            onPress={() => carregarPokemons()}
-            tipo="secundario"
-            style={{ marginTop: espacamento.xl }}
-          >
-            Verificar Novamente
-          </BotaoAcao>
         </View>
       )}
 
@@ -346,18 +339,18 @@ const styles = StyleSheet.create({
     color: cores.textoSecundario,
   },
   botaoCard: {
-    marginTop: espacamento.l,
+    marginTop: espacamento.s,
     width: '100%',
   },
   containerVazio: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: espacamento.l,
+    padding: espacamento.xs,
   },
   imagemVazio: {
-    width: 450,
-    height: 450,
+    width: 320,
+    height: 320,
     marginBottom: espacamento.xs,
     resizeMode: 'contain',
   },

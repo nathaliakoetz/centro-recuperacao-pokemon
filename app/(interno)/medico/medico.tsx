@@ -75,54 +75,64 @@ export default function Medico() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    width: '90%',
+    alignItems: 'center',
+    paddingVertical: espacamento.xl,
+  },
   cardPrincipal: {
     backgroundColor: cores.fundoSuperficie,
     borderRadius: bordas.raioGrande,
-    padding: espacamento.xl,
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 500,
+    padding: espacamento.l,
+    width: '90%',
+    maxWidth: 430,
     ...sombras.sombraMedia,
   },
   header: {
-    width: '100%',
+    width: '99%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: espacamento.m,
+    marginBottom: espacamento.xs,
+    paddingBottom: espacamento.xs,
   },
   bemVindoTexto: {
     fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.subtitulo,
+    fontSize: tipografia.tamanhos.corpo,
     color: cores.textoClaro,
     fontWeight: tipografia.pesos.semiBold,
   },
   logoutIcon: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
     tintColor: cores.textoSecundario,
   },
   imagemPrincipal: {
-    width: 220,
-    height: 220,
+    width: 190,
+    height: 190,
     resizeMode: 'contain',
-    marginBottom: espacamento.s,
+    alignSelf: 'center',
+    marginBottom: espacamento.xs,
   },
   titulo: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.titulo,
     color: cores.textoClaro,
     textAlign: 'center',
+    marginBottom: espacamento.xs,
   },
   dataHoraTexto: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.label,
     color: cores.textoSecundario,
-    marginBottom: espacamento.xl,
+    marginBottom: espacamento.l,
+    textAlign: 'center',
   },
   opcoesContainer: {
     width: '100%',
     alignItems: 'center',
+    flexDirection: 'column',
+    
   },
   botaoOpcao: {
     flex: 0,
@@ -130,5 +140,6 @@ const styles = StyleSheet.create({
     minHeight: 0,
     paddingVertical: espacamento.l,
     marginBottom: espacamento.l,
+    borderRadius: bordas.raioMedio,
   },
 });

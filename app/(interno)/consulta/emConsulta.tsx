@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
-  ScrollView, // Adicionado para o scroll do histórico no modal
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -24,22 +24,22 @@ import {
   sombras,
   tipografia,
 } from "../../../styles/estilosGlobais";
-import { PokemonCadastro, EntradaHistorico } from "../../../utils/salvarPokemon"; // Importar EntradaHistorico
+import { PokemonCadastro, EntradaHistorico } from "../../../utils/salvarPokemon";
 import BotaoAcao from "../../../components/BotaoAcao";
-import { buscarDadosPorEspecie, DadosPokemon } from "../../../utils/pokeapi"; // Importar a função e interface
+import { buscarDadosPorEspecie, DadosPokemon } from "../../../utils/pokeapi";
 
 export default function EmConsulta() {
   const [pokemons, setPokemons] = useState<PokemonCadastro[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonSelecionado, setPokemonSelecionado] = useState<PokemonCadastro | null>(null);
-  const [pokemonDetalhesAPI, setPokemonDetalhesAPI] = useState<DadosPokemon | null>(null); // Novo estado para detalhes da API
+  const [pokemonDetalhesAPI, setPokemonDetalhesAPI] = useState<DadosPokemon | null>(null);
   const [historicoTexto, setHistoricoTexto] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [termoBusca, setTermoBusca] = useState('');
   const [medicaoSelecionada, setMedicaoSelecionada] = useState(false);
-  const [curativoSelecionado, setCurativoSelecionada] = useState(false);
-  
+  const [curativoSelecionada, setCurativoSelecionada] = useState(false);
+
   const router = useRouter();
 
   const carregarPokemons = async () => {
@@ -50,7 +50,7 @@ export default function EmConsulta() {
       const resultados = await AsyncStorage.multiGet(chavesPokemons);
       const lista: PokemonCadastro[] = resultados
         .flatMap(([, valor]) => JSON.parse(valor || "[]"))
-        .filter((pokemon: PokemonCadastro) => pokemon.emConsulta && !pokemon.finalizado);
+        .filter((pokemon) => pokemon.emConsulta && !pokemon.finalizado);
       setPokemons(lista);
     } catch (err) {
       console.error("Erro ao carregar Pokémons em consulta:", err);
@@ -63,7 +63,6 @@ export default function EmConsulta() {
     carregarPokemons();
   }, []);
 
-  // Use useFocusEffect para recarregar quando a tela estiver em foco
   useFocusEffect(
     useCallback(() => {
       carregarPokemons();
@@ -76,7 +75,6 @@ export default function EmConsulta() {
     setMedicaoSelecionada(false);
     setCurativoSelecionada(false);
 
-    // Buscar detalhes da API para fraquezas
     if (pokemon.especiePokemon) {
       const detalhes = await buscarDadosPorEspecie(pokemon.especiePokemon);
       setPokemonDetalhesAPI(detalhes);
@@ -86,13 +84,13 @@ export default function EmConsulta() {
 
     setModalVisivel(true);
   };
-  
+
   const atualizarStatusPokemon = async (updates: Partial<PokemonCadastro>) => {
     if (!pokemonSelecionado) return;
-    
+
     const tags = [];
     if (medicaoSelecionada) tags.push("MEDICAÇÃO");
-    if (curativoSelecionado) tags.push("CURATIVO");
+    if (curativoSelecionada) tags.push("CURATIVO");
 
     const prefixo = tags.length > 0 ? `[${tags.join(', ')}] ` : '';
     const descricaoFinal = `${prefixo}${historicoTexto}`;
@@ -103,30 +101,34 @@ export default function EmConsulta() {
     }
 
     setIsUpdating(true);
-    
+
     const chave = `pokemons:${pokemonSelecionado.idTreinador}`;
     const dados = await AsyncStorage.getItem(chave);
     if (!dados) {
-        setIsUpdating(false);
-        return;
+      setIsUpdating(false);
+      return;
     }
 
     let lista: PokemonCadastro[] = JSON.parse(dados);
     const historicoAtual = pokemonSelecionado.historico || [];
     const novoHistorico = [...historicoAtual, { data: new Date().toLocaleString(), descricao: descricaoFinal }];
-    
+
     lista = lista.map((p) =>
       p.nomePokemon === pokemonSelecionado.nomePokemon ? { ...p, ...updates, historico: novoHistorico } : p
     );
 
     await AsyncStorage.setItem(chave, JSON.stringify(lista));
-    await carregarPokemons(); // Recarrega a lista para refletir a mudança
+    await carregarPokemons();
     setIsUpdating(false);
     setModalVisivel(false);
   };
-  
-  const internarPokemon = () => atualizarStatusPokemon({ emConsulta: false, internado: true });
-  const liberarPokemon = () => atualizarStatusPokemon({ emConsulta: false, finalizado: true });
+
+  const internarPokemon = () => {
+    return atualizarStatusPokemon({ emConsulta: false, internado: true });
+  };
+  const liberarPokemon = () => {
+    return atualizarStatusPokemon({ emConsulta: false, finalizado: true });
+  };
 
   const pokemonsFiltrados = useMemo(() => {
     if (!termoBusca) {
@@ -140,36 +142,35 @@ export default function EmConsulta() {
   }, [pokemons, termoBusca]);
 
   const renderItem = ({ item, index }: { item: PokemonCadastro; index: number }) => (
-      <Animatable.View
-        animation="fadeInUp"
-        duration={500}
-        delay={index * 100}
-      >
-        <TouchableOpacity onPress={() => abrirModal(item)}>
-          <View style={[styles.card, item.urgente && styles.cardUrgente]}>
-            {item.urgente && <Text style={styles.tagUrgente}>URGENTE</Text>}
-            <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
-            <Text style={styles.nomePokemon} numberOfLines={1}>{item.nomePokemon}</Text>
+    <Animatable.View
+      animation="fadeInUp"
+      duration={500}
+      delay={index * 100}
+    >
+      <TouchableOpacity onPress={() => abrirModal(item)}>
+        <View style={[styles.card, item.urgente && styles.cardUrgente]}>
+          {item.urgente && <Text style={styles.tagUrgente}>URGENTE</Text>}
+          <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
+          <Text style={styles.nomePokemon} numberOfLines={1}>{item.nomePokemon}</Text>
 
-            {/* Adicionado: Tags de Tipo, similar à tela de espera */}
-            <View style={styles.tipoContainer}>
-              {item.tipoPokemon.split(',').map((tipo: string) => (
-                <View key={tipo} style={styles.tipoTag}>
-                  <Text style={styles.tipoTexto}>{tipo.trim()}</Text>
-                </View>
-              ))}
-            </View>
-            
-            <View style={styles.detalheContainer}>
-              <Feather name="user" size={14} color={cores.textoSecundario} />
-              <Text style={styles.detalheCard} numberOfLines={1}>
-                {item.nomeTreinador || '-'}
-              </Text>
-            </View>
+          <View style={styles.tipoContainer}>
+            {item.tipoPokemon.split(',').map((tipo: string) => (
+              <View key={tipo} style={styles.tipoTag}>
+                <Text style={styles.tipoTexto}>{tipo.trim()}</Text>
+              </View>
+            ))}
           </View>
-        </TouchableOpacity>
-      </Animatable.View>
-    );
+
+          <View style={styles.detalheContainer}>
+            <Feather name="user" size={14} color={cores.textoSecundario} />
+            <Text style={styles.detalheCard} numberOfLines={1}>
+              {item.nomeTreinador || '-'}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animatable.View>
+  );
 
   return (
     <View style={estilosGlobais.containerCentralizado}>
@@ -218,76 +219,93 @@ export default function EmConsulta() {
 
       <Modal visible={modalVisivel} transparent animationType="fade" onRequestClose={() => setModalVisivel(false)}>
         <View style={estilosGlobais.modalFundo}>
-          <View style={styles.modalContainer}>
-            <View style={styles.colunaImagem}>
-              <Image source={{ uri: pokemonSelecionado?.imagem }} style={styles.modalImagem} />
-            </View>
-            <View style={styles.colunaFormulario}>
-              <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalVisivel(false)}>
-                <Feather name="x" size={24} color={cores.textoSecundario} />
-              </TouchableOpacity>
-              <Text style={styles.modalTitulo}>{pokemonSelecionado?.nomePokemon}</Text>
-              <Text style={styles.modalSubtitulo}>Ficha de Atendimento</Text>
-              
-              <View style={styles.descricaoContainer}>
-                <Text style={styles.descricaoLabel}>Descrição Inicial do Caso:</Text>
-                <Text style={styles.descricaoTexto}>
-                  {pokemonSelecionado?.descricao}
-                </Text>
-              </View>
+          <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalVisivel(false)}>
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
 
-              {/* Fraquezas do Pokémon */}
-              {pokemonDetalhesAPI?.fraquezas && pokemonDetalhesAPI.fraquezas.length > 0 && (
-                <View style={styles.fraquezasContainer}>
-                  <Text style={styles.fraquezasLabel}>Fraquezas:</Text>
-                  <View style={styles.tipoContainer}>
-                    {pokemonDetalhesAPI.fraquezas.map((fraqueza: string) => (
-                      <View key={fraqueza} style={styles.fraquezaTag}>
-                        <Text style={styles.tipoTexto}>{fraqueza.trim()}</Text>
-                      </View>
-                    ))}
-                  </View>
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+              <View style={styles.colunaImagem}>
+                <Image source={{ uri: pokemonSelecionado?.imagem }} style={styles.modalImagem} />
+              </View>
+              <View style={styles.modalHeaderContent}>
+                <Text style={styles.modalTitulo}>{pokemonSelecionado?.nomePokemon}</Text>
+                <Text style={styles.modalSubtitulo}>Ficha de Atendimento</Text>
+              </View>
+              <View style={styles.modalBodyContent}>
+                <View style={styles.descricaoContainer}>
+                  <Text style={styles.descricaoLabel}>Descrição Inicial do Caso:</Text>
+                  <Text style={styles.descricaoTexto}>
+                    {pokemonSelecionado?.descricao}
+                  </Text>
                 </View>
-              )}
 
-              <View style={styles.opcoesContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.opcaoBotao,
-                    medicaoSelecionada && styles.opcaoBotaoSelecionado,
-                  ]}
-                  onPress={() => setMedicaoSelecionada(!medicaoSelecionada)}
-                >
-                  <Text style={styles.opcaoTexto}>Medicação</Text>
-                </TouchableOpacity>
+                {pokemonDetalhesAPI?.fraquezas && pokemonDetalhesAPI.fraquezas.length > 0 && (
+                  <View style={styles.fraquezasContainer}>
+                    <Text style={styles.fraquezasLabel}>Fraquezas:</Text>
+                    <View style={styles.tipoContainer}>
+                      {pokemonDetalhesAPI.fraquezas.map((fraqueza: string) => (
+                        <View key={fraqueza} style={styles.fraquezaTag}>
+                          <Text style={styles.tipoTexto}>{fraqueza.trim()}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
 
-                <TouchableOpacity
-                  style={[
-                    styles.opcaoBotao,
-                    curativoSelecionado && styles.opcaoBotaoSelecionado,
-                  ]}
-                  onPress={() => setCurativoSelecionada(!curativoSelecionado)}
-                >
-                  <Text style={styles.opcaoTexto}>Curativo</Text>
-                </TouchableOpacity>
-              </View>
+                <View style={styles.opcoesContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.opcaoBotao,
+                      medicaoSelecionada && styles.opcaoBotaoSelecionado,
+                    ]}
+                    onPress={() => setMedicaoSelecionada(!medicaoSelecionada)}
+                  >
+                    <Text style={styles.opcaoTexto}>Medicação</Text>
+                  </TouchableOpacity>
 
-              <Text style={estilosGlobais.label}>Adicionar atualização ao histórico *</Text>
-              <TextInput
-                style={[estilosGlobais.campoMultilinha, {height: 120}]}
-                placeholder="Ex: Paciente apresentou melhora..."
-                placeholderTextColor={cores.textoSecundario}
-                value={historicoTexto}
-                onChangeText={setHistoricoTexto}
-                multiline
-              />
+                  <TouchableOpacity
+                    style={[
+                      styles.opcaoBotao,
+                      curativoSelecionada && styles.opcaoBotaoSelecionado,
+                    ]}
+                    onPress={() => setCurativoSelecionada(!curativoSelecionada)}
+                  >
+                    <Text style={styles.opcaoTexto}>Curativo</Text>
+                  </TouchableOpacity>
+                </View>
 
+                <Text style={estilosGlobais.label}>Adicionar atualização ao histórico *</Text>
+                <TextInput
+                  style={[estilosGlobais.campoMultilinha, { height: 120 }]}
+                  placeholder="Ex: Paciente apresentou melhora..."
+                  placeholderTextColor={cores.textoSecundario}
+                  value={historicoTexto}
+                  onChangeText={setHistoricoTexto}
+                  multiline
+                />
+              </View> {/* Fim modalBodyContent */}
+            </ScrollView> {/* Fim ScrollView */}
+
+            {/* Botões de ação fixos na parte inferior do modal */}
+            <View style={styles.modalFooterButtons}>
               <View style={styles.modalBotoesContainer}>
-                <BotaoAcao onPress={internarPokemon} tipo="secundario" style={styles.modalBotao} disabled={isUpdating}>
-                    {isUpdating ? <ActivityIndicator/> : "Internar"}
+                <BotaoAcao onPress={internarPokemon} style={styles.modalBotao} disabled={isUpdating}>
+                  {isUpdating ? <ActivityIndicator /> : "Internar"}
                 </BotaoAcao>
-                <BotaoAcao onPress={liberarPokemon} style={styles.modalBotao} disabled={isUpdating}>
-                    {isUpdating ? <ActivityIndicator/> : "Liberar Alta"}
+                <BotaoAcao
+                  onPress={liberarPokemon}
+                  style={styles.modalBotao}
+                  disabled={
+                    isUpdating ||
+                    (
+                      !historicoTexto.trim() &&
+                      !medicaoSelecionada &&
+                      !curativoSelecionada
+                    )
+                  }
+                >
+                  {isUpdating ? <ActivityIndicator /> : "Liberar Alta"}
                 </BotaoAcao>
               </View>
 
@@ -295,7 +313,7 @@ export default function EmConsulta() {
                 <Text style={styles.modalFechar}>Cancelar</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </View> 
         </View>
       </Modal>
     </View>
@@ -423,12 +441,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: espacamento.xl,
+    padding: espacamento.m,
   },
   imagemVazio: {
-    width: 400,
-    height: 400,
-    marginBottom: espacamento.xl,
+    width: 320,
+    height: 320,
+    marginBottom: espacamento.xs,
     resizeMode: 'contain',
   },
   tituloVazio: {
@@ -436,7 +454,7 @@ const styles = StyleSheet.create({
     fontSize: tipografia.tamanhos.subtitulo,
     color: cores.textoClaro,
     textAlign: 'center',
-    marginBottom: espacamento.s,
+    marginBottom: espacamento.xs,
   },
   subtituloVazio: {
     fontFamily: tipografia.familia,
@@ -444,68 +462,75 @@ const styles = StyleSheet.create({
     color: cores.textoSecundario,
     textAlign: 'center',
   },
-  modalContainer: {
-    flexDirection: 'column',
-    backgroundColor: cores.fundoSuperficie,
-    borderRadius: bordas.raioGrande,
-    width: '95%',
-    maxWidth: 600,
-    maxHeight: '90%',
-    ...sombras.sombraMedia,
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  colunaFormulario: {
-    width: '100%',
-    padding: espacamento.l,
-  },
-  colunaImagem: {
+  colunaImagem: { 
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: cores.fundoEscuro,
     paddingVertical: espacamento.l,
   },
-  modalImagem: {
+  modalImagem: { 
     width: '80%',
     height: 200,
     resizeMode: 'contain',
   },
-  modalTitulo: {
+  modalTitulo: { 
     textAlign: 'center',
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.titulo,
     color: cores.textoClaro,
+    marginBottom: espacamento.m, 
+    paddingTop: espacamento.l, 
   },
-  modalSubtitulo: {
+  modalSubtitulo: { 
     textAlign: 'center',
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.corpo,
     color: cores.textoSecundario,
     marginBottom: espacamento.l,
   },
-  modalBotoesContainer: {
+  modalBotoesContainer: { 
     flexDirection: 'row',
     gap: espacamento.m,
-    marginTop: espacamento.m,
     width: '100%',
   },
   modalBotao: {
     flex: 1,
   },
-  botaoFecharModal: {
+  botaoFecharModal: { 
     position: 'absolute',
-    top: espacamento.s,
-    right: espacamento.s,
+    top: espacamento.m,
+    right: espacamento.m,
+    zIndex: 1,
     padding: espacamento.s,
   },
-  modalFechar: {
+  modalFechar: { 
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.label,
     color: cores.textoSecundario,
     marginTop: espacamento.xl,
     textDecorationLine: 'underline',
     textAlign: 'center',
+    paddingBottom: espacamento.l, 
+  },
+  modalHeaderContent: { 
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: espacamento.xl, 
+    marginBottom: espacamento.l,
+  },
+  modalBodyContent: { 
+    width: '100%',
+    paddingHorizontal: espacamento.xl, 
+  },
+  modalFooterButtons: { 
+    width: '100%',
+    paddingTop: espacamento.l, 
+    paddingHorizontal: espacamento.xl, 
+    backgroundColor: cores.fundoSuperficie, 
+    borderTopWidth: 1,
+    borderTopColor: cores.neutra, 
+    alignItems: 'center', 
   },
   opcoesContainer: {
     flexDirection: 'row',
@@ -553,7 +578,7 @@ const styles = StyleSheet.create({
     color: cores.textoClaro,
     fontStyle: 'italic',
   },
-  fraquezasContainer: { // Novo estilo para o container de fraquezas
+  fraquezasContainer: {
     backgroundColor: cores.fundoEscuro,
     borderRadius: bordas.raioPequeno,
     padding: espacamento.m,
@@ -562,19 +587,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#444',
   },
-  fraquezasLabel: { // Novo estilo para o label de fraquezas
+  fraquezasLabel: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.pequeno,
     color: cores.textoSecundario,
     marginBottom: espacamento.s,
     textTransform: 'uppercase',
   },
-  fraquezaTag: { // Reutiliza estilo de tipo, mas pode ser separado se precisar de customização
+  fraquezaTag: {
     backgroundColor: cores.fundoEscuro,
     paddingHorizontal: espacamento.m,
     paddingVertical: espacamento.xs,
     borderRadius: bordas.raioPequeno,
-    marginRight: espacamento.s, // Espaçamento entre as tags
-    marginBottom: espacamento.s, // Espaçamento para quebrar linha
+    marginRight: espacamento.s,
+    marginBottom: espacamento.s,
   },
 });
