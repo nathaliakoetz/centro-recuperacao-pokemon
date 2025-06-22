@@ -21,11 +21,6 @@ export default function AreaInterna() {
       tipo: 'primario' as const,
     },
     {
-      titulo: 'Aguardando para Consulta',
-      rota: '/(interno)/consulta/espera',
-      tipo: 'primario' as const,
-    },
-    {
       titulo: 'URGENTE',
       rota: '/(interno)/cadastro/urgente',
       tipo: 'urgente' as const,

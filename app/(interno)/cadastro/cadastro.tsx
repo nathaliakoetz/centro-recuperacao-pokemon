@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     marginLeft: espacamento.s,
   },
   modalImagem: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     marginBottom: espacamento.l,
   },
   modalFechar: {

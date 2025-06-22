@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,127 +7,219 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Dimensions,
+  ActivityIndicator,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { estilosGlobais } from "../../../styles/estilosGlobais";
 import { useRouter } from "expo-router";
-import { cores } from "../../../styles/estilosGlobais"; // Importando as cores
-
-const larguraTela = Dimensions.get("window").width;
-
-function calcularNumColunas() {
-  if (larguraTela >= 1200) return 4;
-  if (larguraTela >= 768) return 2;
-  return 1;
-}
+import { Feather } from '@expo/vector-icons';
+import * as Animatable from 'react-native-animatable';
+import {
+  estilosGlobais,
+  cores,
+  espacamento,
+  bordas,
+  sombras,
+  tipografia,
+} from "../../../styles/estilosGlobais";
+import { PokemonCadastro } from "../../../utils/salvarPokemon";
+import BotaoAcao from "../../../components/BotaoAcao";
 
 export default function ListaEspera() {
-  const [pokemons, setPokemons] = useState<any[]>([]);
+  const [pokemons, setPokemons] = useState<PokemonCadastro[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [numColunas, setNumColunas] = useState(calcularNumColunas());
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonNome, setPokemonNome] = useState<string | undefined>();
+  const [termoBusca, setTermoBusca] = useState('');
+  
   const router = useRouter();
 
+  const carregarPokemons = async () => {
+    setCarregando(true);
+    try {
+      const todasChaves = await AsyncStorage.getAllKeys();
+      const chavesPokemons = todasChaves.filter((chave) =>
+        chave.startsWith("pokemons:")
+      );
+      const resultados = await AsyncStorage.multiGet(chavesPokemons);
+      const lista: PokemonCadastro[] = resultados.flatMap(([, valor]) =>
+        JSON.parse(valor || "[]")
+      );
+  
+      const filtrados = lista.filter(
+        (p) => !p.emConsulta && !p.internado && !p.finalizado
+      );
+  
+      const ordenados = filtrados.sort((a, b) => {
+        if (a.urgente && !b.urgente) return -1;
+        if (!a.urgente && b.urgente) return 1;
+        return 0;
+      });
+  
+      setPokemons(ordenados);
+    } catch (err) {
+      console.error("Erro ao carregar lista de espera:", err);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   useEffect(() => {
-    const carregarPokemons = async () => {
-      try {
-        const todasChaves = await AsyncStorage.getAllKeys();
-        const chavesPokemons = todasChaves.filter((chave) => chave.startsWith("pokemons:"));
-        const resultados = await AsyncStorage.multiGet(chavesPokemons);
-        const lista = resultados.flatMap(([, valor]) => JSON.parse(valor || "[]")) as any[];
-
-        const filtrados = lista.filter(
-          (p) => !p.emConsulta && !p.internado && !p.finalizado
-        );
-
-        const ordenados = filtrados.sort((a, b) => {
-          if (a.urgente && !b.urgente) return -1;
-          if (!a.urgente && b.urgente) return 1;
-          return 0;
-        });
-
-        setPokemons(ordenados);
-      } catch (err) {
-        console.error("Erro ao carregar lista de espera:", err);
-      } finally {
-        setCarregando(false);
-      }
-    };
-
-    const atualizarColunas = () => {
-      const largura = Dimensions.get("window").width;
-      if (largura >= 1200) setNumColunas(4);
-      else if (largura >= 768) setNumColunas(2);
-      else setNumColunas(1);
-    };
-
     carregarPokemons();
-    atualizarColunas();
-
-    const subscription = Dimensions.addEventListener("change", atualizarColunas);
-    return () => subscription?.remove();
   }, []);
 
-  const enviarParaConsulta = async (pokemon: any) => {
+  const enviarParaConsulta = async (pokemon: PokemonCadastro) => {
     const chave = `pokemons:${pokemon.idTreinador}`;
     const dados = await AsyncStorage.getItem(chave);
     if (!dados) return;
 
-    const lista = JSON.parse(dados) as any[];
+    const lista: PokemonCadastro[] = JSON.parse(dados);
     const novaLista = lista.map((p) =>
       p.nomePokemon === pokemon.nomePokemon ? { ...p, emConsulta: true } : p
     );
 
     await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
-    setPokemons((prev) => prev.filter((p) => p.nomePokemon !== pokemon.nomePokemon));
+    
+    await carregarPokemons();
+
     setPokemonNome(pokemon.nomePokemon);
     setModalVisivel(true);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View
-      style={[item.urgente ? styles.cardUrgente : styles.cardBranco, { width: larguraTela / numColunas - 32 }]}
+  const pokemonsFiltrados = useMemo(() => {
+    if (!termoBusca) {
+      return pokemons;
+    }
+    return pokemons.filter(
+      (p) =>
+        p.nomePokemon.toLowerCase().includes(termoBusca.toLowerCase()) ||
+        (p.nomeTreinador && p.nomeTreinador.toLowerCase().includes(termoBusca.toLowerCase()))
+    );
+  }, [pokemons, termoBusca]);
+
+  const renderItem = ({ item, index }: { item: PokemonCadastro; index: number }) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={500}
+      delay={index * 100}
     >
-      <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
-      <View style={styles.infoCard}>
-        <Text style={styles.nomePokemon}>{item.nomePokemon}</Text>
-        <Text style={styles.nomeTreinador}>{item.nomeTreinador || "-"}</Text>
-        <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
-        <TouchableOpacity style={styles.botaoConsulta} onPress={() => enviarParaConsulta(item)}>
-          <Text style={styles.textoBotao}>IR PARA CONSULTA</Text>
-        </TouchableOpacity>
+      <View style={[styles.card, item.urgente && styles.cardUrgente]}>
+        {item.urgente && <Text style={styles.tagUrgente}>URGENTE</Text>}
+        <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
+        <Text style={styles.nomePokemon} numberOfLines={1}>
+          {item.nomePokemon}
+        </Text>
+
+        <View style={styles.tipoContainer}>
+          {item.tipoPokemon.split(',').map((tipo: string) => (
+            <View key={tipo} style={styles.tipoTag}>
+              <Text style={styles.tipoTexto}>{tipo.trim()}</Text>
+            </View>
+          ))}
+        </View>
+        
+        <View style={styles.detalheContainer}>
+          <Feather name="user" size={14} color={cores.textoSecundario} />
+          <Text style={styles.detalheCard} numberOfLines={1}>
+            {item.nomeTreinador || '-'}
+          </Text>
+        </View>
+        
+        <BotaoAcao
+          onPress={() => enviarParaConsulta(item)}
+          style={styles.botaoCard}
+        >
+          Iniciar Consulta
+        </BotaoAcao>
       </View>
-    </View>
+    </Animatable.View>
   );
 
   return (
     <View style={estilosGlobais.containerCentralizado}>
-      <View style={[estilosGlobais.topBar, { marginTop: 40 }]}>
-        <TouchableOpacity onPress={() => router.push("/(interno)/medico/medico")}>
-          <Text style={estilosGlobais.linkTopo}>← Voltar</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.push('/(interno)/medico/medico')}>
+          <Image source={require('../../../assets/voltar.png')} style={styles.voltarIcon} />
         </TouchableOpacity>
+        <View style={styles.containerTituloHeader}>
+          <Text style={styles.titulo}>Fila de Espera</Text>
+          {!carregando && (
+            <Text style={styles.contador}>
+              {pokemonsFiltrados.length} pacientes na fila
+            </Text>
+          )}
+        </View>
+        <View style={{ width: 30 }} />
       </View>
 
-      <FlatList
-        data={pokemons}
-        renderItem={renderItem}
-        keyExtractor={(_, i) => i.toString()}
-        contentContainerStyle={styles.lista}
-        numColumns={numColunas}
-      />
+      <View style={styles.containerBusca}>
+        <Feather name="search" size={20} color={cores.textoSecundario} />
+        <TextInput
+          style={styles.campoBusca}
+          placeholder="Buscar por nome do Pokémon ou Treinador..."
+          placeholderTextColor={cores.textoSecundario}
+          value={termoBusca}
+          onChangeText={setTermoBusca}
+        />
+      </View>
 
-      {/* Modal de confirmação de consulta */}
+      {carregando ? (
+        <ActivityIndicator
+          size="large"
+          color={cores.primaria}
+          style={{ flex: 1 }}
+        />
+      ) : pokemonsFiltrados.length > 0 ? (
+        <FlatList
+          data={pokemonsFiltrados}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.nomePokemon}-${index}`}
+          contentContainerStyle={styles.lista}
+        />
+      ) : (
+        <View style={styles.containerVazio}>
+          <Image
+            source={require('../../../assets/espera.png')}
+            style={styles.imagemVazio}
+          />
+          <Text style={styles.tituloVazio}>
+            {termoBusca
+              ? 'Nenhum resultado encontrado'
+              : 'Nenhum paciente aguardando'}
+          </Text>
+          <Text style={styles.subtituloVazio}>
+            {termoBusca
+              ? `Tente uma busca diferente.`
+              : 'A fila de espera está vazia no momento.'}
+          </Text>
+          <BotaoAcao
+            onPress={() => carregarPokemons()}
+            tipo="secundario"
+            style={{ marginTop: espacamento.xl }}
+          >
+            Verificar Novamente
+          </BotaoAcao>
+        </View>
+      )}
+
       <Modal transparent visible={modalVisivel} animationType="fade">
-        <View style={modalStyles.modalFundo}>
-          <View style={modalStyles.modalConteudo}>
-            <Text style={estilosGlobais.titulo}>POKÉMON EM CONSULTA</Text>
-            <Text style={modalStyles.texto}>
-              O Pokémon <Text style={{ fontWeight: "bold" }}>{pokemonNome}</Text> foi enviado para a consulta com sucesso!
+        <View style={estilosGlobais.modalFundo}>
+          <View style={estilosGlobais.modalConteudo}>
+            <Text style={estilosGlobais.modalTitulo}>Sucesso!</Text>
+            <Text style={estilosGlobais.modalTexto}>
+              O Pokémon <Text style={{ fontWeight: 'bold' }}>{pokemonNome}</Text>{' '}
+              foi enviado para a consulta.
             </Text>
-            <TouchableOpacity style={modalStyles.botaoFechar} onPress={() => setModalVisivel(false)}>
-              <Text style={modalStyles.textoFechar}>Fechar</Text>
+            <TouchableOpacity onPress={() => setModalVisivel(false)}>
+              <Text
+                style={{
+                  color: cores.primaria,
+                  textDecorationLine: 'underline',
+                  fontFamily: tipografia.familia,
+                }}
+              >
+                Fechar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -137,113 +229,161 @@ export default function ListaEspera() {
 }
 
 const styles = StyleSheet.create({
-  lista: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    gap: 16,
-    justifyContent: "center",
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: espacamento.l,
+    marginBottom: espacamento.s,
   },
-  cardBranco: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 16,
-    margin: 8,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+  voltarIcon: {
+    width: 30,
+    height: 30,
+    tintColor: cores.textoClaro,
+  },
+  containerTituloHeader: {
+    alignItems: 'center',
+  },
+  titulo: {
+    ...estilosGlobais.titulo,
+    marginBottom: 0,
+  },
+  contador: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+  },
+  containerBusca: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioMedio,
+    paddingHorizontal: espacamento.l,
+    marginHorizontal: espacamento.l,
+    marginBottom: espacamento.l,
+    ...sombras.sombraMedia,
+  },
+  campoBusca: {
+    flex: 1,
+    paddingVertical: espacamento.m,
+    paddingLeft: espacamento.m,
+    color: cores.textoClaro,
+    fontFamily: tipografia.familia,
+  },
+  lista: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: espacamento.m,
+  },
+  card: {
+    backgroundColor: cores.fundoSuperficie,
+    borderRadius: bordas.raioMedio,
+    padding: espacamento.l,
+    ...sombras.sombraMedia,
+    alignItems: 'center',
+    margin: espacamento.s,
+    width: 280,
   },
   cardUrgente: {
-    flexDirection: "row",
-    backgroundColor: "#e63946",
-    borderRadius: 20,
-    padding: 16,
-    margin: 8,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    borderColor: cores.erro,
+    borderWidth: 2,
+  },
+  tagUrgente: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: cores.erro,
+    color: cores.branco,
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderTopRightRadius: bordas.raioMedio,
+    borderBottomLeftRadius: bordas.raioMedio,
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.pequeno,
+    fontWeight: tipografia.pesos.bold,
   },
   imagemCard: {
-    width: 80,
-    height: 80,
-    resizeMode: "contain",
-    marginRight: 12,
-  },
-  infoCard: {
-    flex: 1,
+    width: 140,
+    height: 140,
+    resizeMode: 'contain',
+    marginBottom: espacamento.m,
   },
   nomePokemon: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: cores.textoClaro, // Usando a cor padrão
-    marginBottom: 4,
-    fontFamily: "Roboto", // Tipografia Roboto
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    fontWeight: tipografia.pesos.bold,
+    color: cores.textoClaro,
+    marginBottom: espacamento.s,
   },
-  nomeTreinador: {
-    fontSize: 14,
-    fontStyle: "italic",
-    color: cores.textoClaro, // Usando a cor padrão
-    marginBottom: 6,
-    fontFamily: "Roboto", // Tipografia Roboto
+  tipoContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: espacamento.s,
+    marginBottom: espacamento.m,
   },
-  descricao: {
-    fontSize: 14,
-    color: cores.textoClaro, // Usando a cor padrão
-    marginBottom: 10,
-    fontFamily: "Roboto", // Tipografia Roboto
+  tipoTag: {
+    backgroundColor: cores.fundoEscuro,
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderRadius: bordas.raioPequeno,
   },
-  botaoConsulta: {
-    backgroundColor: "#2a9d8f",
-    alignSelf: "flex-start",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+  tipoTexto: {
+    color: cores.textoSecundario,
+    fontSize: tipografia.tamanhos.pequeno,
   },
-  textoBotao: {
-    color: "#fff",
-    fontFamily: "Roboto", // Tipografia Roboto
-    fontSize: 8,
-    textAlign: "center",
+  detalheContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamento.s,
   },
-});
-
-const modalStyles = StyleSheet.create({
-  modalFundo: {
+  detalheCard: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+  },
+  botaoCard: {
+    marginTop: espacamento.l,
+    width: '100%',
+  },
+  containerVazio: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: espacamento.l,
   },
-  modalConteudo: {
-    backgroundColor: "#fff",
-    padding: 30,
-    borderRadius: 20,
-    alignItems: "center",
-    gap: 20,
-    width: "80%",
+  imagemVazio: {
+    width: 450,
+    height: 450,
+    marginBottom: espacamento.xs,
+    resizeMode: 'contain',
   },
-  texto: {
-    fontSize: 14,
-    color: cores.textoClaro, // Usando a cor padrão
-    textAlign: "center",
-    fontFamily: "Roboto", // Tipografia Roboto
+  tituloVazio: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.subtitulo,
+    color: cores.textoClaro,
+    textAlign: 'center',
+    marginBottom: espacamento.xs,
   },
-  botaoFechar: {
-    backgroundColor: "#2a9d8f",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+  subtituloVazio: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.corpo,
+    color: cores.textoSecundario,
+    textAlign: 'center',
   },
-  textoFechar: {
-    color: "#fff",
-    fontFamily: "Roboto", // Tipografia Roboto
-    fontSize: 10,
+  modalImagem: {
+    width: 80,
+    height: 80,
+    marginBottom: espacamento.l,
+  },
+  modalFechar: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.titulo,
+    color: cores.primaria,
+    marginTop: espacamento.m,
+    textDecorationLine: 'underline',
   },
 });

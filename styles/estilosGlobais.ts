@@ -11,7 +11,7 @@ export const cores = {
   textoSecundario: "#A9A9A9",
   
   // Cores de Ação e Semânticas (Baseadas no Novo Logo)
-  primaria: "#F08080",         // O vermelho-coral 
+  primaria: "#dc533e",         // O vermelho-coral 
   secundaria: "#F8B8C2",       // O rosa-pêssego do corpo da Chansey
   acento: "#FDF5E6",           // O creme do ovo da Chansey
   
@@ -36,8 +36,8 @@ export const tipografia = {
   tamanhos: {
     titulo: 28,
     subtitulo: 22,
-    corpo: 16,
-    label: 14,
+    corpo: 18,
+    label: 16,
     pequeno: 12,
   },
   pesos: {
@@ -213,7 +213,7 @@ export const estilosGlobais = StyleSheet.create({
     marginBottom: espacamento.m,
   },
   modalTexto: {
-    fontSize: tipografia.tamanhos.label,
+    fontSize: tipografia.tamanhos.corpo,
     fontFamily: tipografia.familia,
     color: cores.textoClaro,
     textAlign: "center",

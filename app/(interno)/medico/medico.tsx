@@ -33,7 +33,7 @@ export default function Medico() {
   const opcoes = [
     { titulo: 'Pacientes em Espera', rota: '/(interno)/consulta/espera', tipo: 'primario' as const },
     { titulo: 'Consultas em Andamento', rota: '/(interno)/consulta/emConsulta', tipo: 'primario' as const },
-    { titulo: 'Pacientes na Internação', rota: '/(interno)/consulta/internacao', tipo: 'primario' as const },
+    { titulo: 'Pacientes na Internação', rota: '/(interno)/consulta/internacao', tipo: 'urgente' as const },
   ];
 
   return (
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
     tintColor: cores.textoSecundario,
   },
   imagemPrincipal: {
-    width: 100,
-    height: 100,
+    width: 220,
+    height: 220,
     resizeMode: 'contain',
     marginBottom: espacamento.s,
   },
