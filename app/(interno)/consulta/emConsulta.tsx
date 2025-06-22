@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Dimensions,
   ActivityIndicator,
   TextInput,
   Alert,
+  ScrollView, // Adicionado para o scroll do histórico no modal
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Feather } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import {
@@ -24,21 +24,21 @@ import {
   sombras,
   tipografia,
 } from "../../../styles/estilosGlobais";
-import { PokemonCadastro } from "../../../utils/salvarPokemon";
+import { PokemonCadastro, EntradaHistorico } from "../../../utils/salvarPokemon"; // Importar EntradaHistorico
 import BotaoAcao from "../../../components/BotaoAcao";
-
-// A função formatData e calcularNumColunas não são mais necessárias e podem ser removidas.
+import { buscarDadosPorEspecie, DadosPokemon } from "../../../utils/pokeapi"; // Importar a função e interface
 
 export default function EmConsulta() {
   const [pokemons, setPokemons] = useState<PokemonCadastro[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonSelecionado, setPokemonSelecionado] = useState<PokemonCadastro | null>(null);
+  const [pokemonDetalhesAPI, setPokemonDetalhesAPI] = useState<DadosPokemon | null>(null); // Novo estado para detalhes da API
   const [historicoTexto, setHistoricoTexto] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [termoBusca, setTermoBusca] = useState('');
   const [medicaoSelecionada, setMedicaoSelecionada] = useState(false);
-  const [curativoSelecionado, setCurativoSelecionado] = useState(false);
+  const [curativoSelecionado, setCurativoSelecionada] = useState(false);
   
   const router = useRouter();
 
@@ -50,7 +50,7 @@ export default function EmConsulta() {
       const resultados = await AsyncStorage.multiGet(chavesPokemons);
       const lista: PokemonCadastro[] = resultados
         .flatMap(([, valor]) => JSON.parse(valor || "[]"))
-        .filter((pokemon) => pokemon.emConsulta && !pokemon.finalizado);
+        .filter((pokemon: PokemonCadastro) => pokemon.emConsulta && !pokemon.finalizado);
       setPokemons(lista);
     } catch (err) {
       console.error("Erro ao carregar Pokémons em consulta:", err);
@@ -63,11 +63,27 @@ export default function EmConsulta() {
     carregarPokemons();
   }, []);
 
-  const abrirModal = (pokemon: PokemonCadastro) => {
+  // Use useFocusEffect para recarregar quando a tela estiver em foco
+  useFocusEffect(
+    useCallback(() => {
+      carregarPokemons();
+    }, [])
+  );
+
+  const abrirModal = async (pokemon: PokemonCadastro) => {
     setPokemonSelecionado(pokemon);
     setHistoricoTexto("");
     setMedicaoSelecionada(false);
-    setCurativoSelecionado(false);
+    setCurativoSelecionada(false);
+
+    // Buscar detalhes da API para fraquezas
+    if (pokemon.especiePokemon) {
+      const detalhes = await buscarDadosPorEspecie(pokemon.especiePokemon);
+      setPokemonDetalhesAPI(detalhes);
+    } else {
+      setPokemonDetalhesAPI(null);
+    }
+
     setModalVisivel(true);
   };
   
@@ -104,7 +120,7 @@ export default function EmConsulta() {
     );
 
     await AsyncStorage.setItem(chave, JSON.stringify(lista));
-    await carregarPokemons();
+    await carregarPokemons(); // Recarrega a lista para refletir a mudança
     setIsUpdating(false);
     setModalVisivel(false);
   };
@@ -134,6 +150,16 @@ export default function EmConsulta() {
             {item.urgente && <Text style={styles.tagUrgente}>URGENTE</Text>}
             <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
             <Text style={styles.nomePokemon} numberOfLines={1}>{item.nomePokemon}</Text>
+
+            {/* Adicionado: Tags de Tipo, similar à tela de espera */}
+            <View style={styles.tipoContainer}>
+              {item.tipoPokemon.split(',').map((tipo: string) => (
+                <View key={tipo} style={styles.tipoTag}>
+                  <Text style={styles.tipoTexto}>{tipo.trim()}</Text>
+                </View>
+              ))}
+            </View>
+            
             <View style={styles.detalheContainer}>
               <Feather name="user" size={14} color={cores.textoSecundario} />
               <Text style={styles.detalheCard} numberOfLines={1}>
@@ -197,6 +223,9 @@ export default function EmConsulta() {
               <Image source={{ uri: pokemonSelecionado?.imagem }} style={styles.modalImagem} />
             </View>
             <View style={styles.colunaFormulario}>
+              <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalVisivel(false)}>
+                <Feather name="x" size={24} color={cores.textoSecundario} />
+              </TouchableOpacity>
               <Text style={styles.modalTitulo}>{pokemonSelecionado?.nomePokemon}</Text>
               <Text style={styles.modalSubtitulo}>Ficha de Atendimento</Text>
               
@@ -206,6 +235,20 @@ export default function EmConsulta() {
                   {pokemonSelecionado?.descricao}
                 </Text>
               </View>
+
+              {/* Fraquezas do Pokémon */}
+              {pokemonDetalhesAPI?.fraquezas && pokemonDetalhesAPI.fraquezas.length > 0 && (
+                <View style={styles.fraquezasContainer}>
+                  <Text style={styles.fraquezasLabel}>Fraquezas:</Text>
+                  <View style={styles.tipoContainer}>
+                    {pokemonDetalhesAPI.fraquezas.map((fraqueza: string) => (
+                      <View key={fraqueza} style={styles.fraquezaTag}>
+                        <Text style={styles.tipoTexto}>{fraqueza.trim()}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
 
               <View style={styles.opcoesContainer}>
                 <TouchableOpacity
@@ -223,7 +266,7 @@ export default function EmConsulta() {
                     styles.opcaoBotao,
                     curativoSelecionado && styles.opcaoBotaoSelecionado,
                   ]}
-                  onPress={() => setCurativoSelecionado(!curativoSelecionado)}
+                  onPress={() => setCurativoSelecionada(!curativoSelecionado)}
                 >
                   <Text style={styles.opcaoTexto}>Curativo</Text>
                 </TouchableOpacity>
@@ -349,6 +392,23 @@ const styles = StyleSheet.create({
     color: cores.textoClaro,
     marginBottom: espacamento.s,
   },
+  tipoContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: espacamento.s,
+    marginBottom: espacamento.m,
+  },
+  tipoTag: {
+    backgroundColor: cores.fundoEscuro,
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderRadius: bordas.raioPequeno,
+  },
+  tipoTexto: {
+    color: cores.textoSecundario,
+    fontSize: tipografia.tamanhos.pequeno,
+  },
   detalheContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,8 +448,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: cores.fundoSuperficie,
     borderRadius: bordas.raioGrande,
-    width: '90%',
-    maxWidth: 500,
+    width: '95%',
+    maxWidth: 600,
+    maxHeight: '90%',
     ...sombras.sombraMedia,
     overflow: 'hidden',
     alignItems: 'center',
@@ -431,6 +492,12 @@ const styles = StyleSheet.create({
   },
   modalBotao: {
     flex: 1,
+  },
+  botaoFecharModal: {
+    position: 'absolute',
+    top: espacamento.s,
+    right: espacamento.s,
+    padding: espacamento.s,
   },
   modalFechar: {
     fontFamily: tipografia.familia,
@@ -485,5 +552,29 @@ const styles = StyleSheet.create({
     fontSize: tipografia.tamanhos.corpo,
     color: cores.textoClaro,
     fontStyle: 'italic',
+  },
+  fraquezasContainer: { // Novo estilo para o container de fraquezas
+    backgroundColor: cores.fundoEscuro,
+    borderRadius: bordas.raioPequeno,
+    padding: espacamento.m,
+    marginBottom: espacamento.l,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  fraquezasLabel: { // Novo estilo para o label de fraquezas
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.pequeno,
+    color: cores.textoSecundario,
+    marginBottom: espacamento.s,
+    textTransform: 'uppercase',
+  },
+  fraquezaTag: { // Reutiliza estilo de tipo, mas pode ser separado se precisar de customização
+    backgroundColor: cores.fundoEscuro,
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderRadius: bordas.raioPequeno,
+    marginRight: espacamento.s, // Espaçamento entre as tags
+    marginBottom: espacamento.s, // Espaçamento para quebrar linha
   },
 });

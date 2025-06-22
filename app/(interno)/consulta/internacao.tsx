@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {
 } from "../../../styles/estilosGlobais";
 import { PokemonCadastro, EntradaHistorico } from "../../../utils/salvarPokemon";
 import BotaoAcao from "../../../components/BotaoAcao";
+import { buscarDadosPorEspecie, DadosPokemon } from "../../../utils/pokeapi"; // Importa a função e interface
 
 export default function Internacao() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function Internacao() {
   const [carregando, setCarregando] = useState(true);
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonSelecionado, setPokemonSelecionado] = useState<PokemonCadastro | null>(null);
+  const [pokemonDetalhesAPI, setPokemonDetalhesAPI] = useState<DadosPokemon | null>(null); // Novo estado para detalhes da API
   const [novaAtualizacao, setNovaAtualizacao] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -55,17 +57,25 @@ export default function Internacao() {
     }
   };
   
+  // Usar useFocusEffect para recarregar quando a tela estiver em foco
   useFocusEffect(
-    useMemo(() => {
-      return () => {
-        carregarInternados();
-      };
+    useCallback(() => {
+      carregarInternados();
     }, [])
   );
 
-  const abrirModal = (pokemon: PokemonCadastro) => {
+  const abrirModal = async (pokemon: PokemonCadastro) => {
     setPokemonSelecionado(pokemon);
     setNovaAtualizacao("");
+
+    // Buscar detalhes da API para fraquezas
+    if (pokemon.especiePokemon) {
+      const detalhes = await buscarDadosPorEspecie(pokemon.especiePokemon);
+      setPokemonDetalhesAPI(detalhes);
+    } else {
+      setPokemonDetalhesAPI(null);
+    }
+
     setModalVisivel(true);
   };
 
@@ -98,6 +108,7 @@ export default function Internacao() {
       });
       
       await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
+      // Atualiza o estado local do pokemonSelecionado para refletir o histórico atualizado
       setPokemonSelecionado(prevState => ({ ...prevState!, historico: [...historicoAtual, novaEntrada] }));
       setNovaAtualizacao("");
       
@@ -133,6 +144,7 @@ export default function Internacao() {
                     ...p,
                     internado: false,
                     finalizado: true,
+                    emConsulta: false, // Garante que não está mais em consulta
                     historico: [...historicoAtual, novaEntrada]
                 };
             }
@@ -140,7 +152,7 @@ export default function Internacao() {
         });
 
         await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
-        await carregarInternados();
+        await carregarInternados(); // Recarrega a lista para refletir a alta
         setModalVisivel(false);
 
     } catch (err) {
@@ -160,6 +172,16 @@ export default function Internacao() {
         <View style={styles.card}>
           <Image source={{ uri: item.imagem }} style={styles.imagemCard} />
           <Text style={styles.nomePokemon} numberOfLines={1}>{item.nomePokemon}</Text>
+          
+          {/* Adicionado: Tags de Tipo, similar à tela de espera */}
+          <View style={styles.tipoContainer}>
+            {item.tipoPokemon.split(',').map((tipo: string) => (
+              <View key={tipo} style={styles.tipoTag}>
+                <Text style={styles.tipoTexto}>{tipo.trim()}</Text>
+              </View>
+            ))}
+          </View>
+
           <View style={styles.detalheContainer}>
             <Feather name="user" size={14} color={cores.textoSecundario} />
             <Text style={styles.detalheCard} numberOfLines={1}>{item.nomeTreinador || '-'}</Text>
@@ -216,6 +238,20 @@ export default function Internacao() {
             <View style={styles.colunaFormulario}>
                 <Text style={styles.modalTitulo}>{pokemonSelecionado?.nomePokemon}</Text>
                 
+                {/* Fraquezas do Pokémon */}
+                {pokemonDetalhesAPI?.fraquezas && pokemonDetalhesAPI.fraquezas.length > 0 && (
+                  <View style={styles.fraquezasContainer}>
+                    <Text style={styles.fraquezasLabel}>Fraquezas:</Text>
+                    <View style={styles.tipoContainer}> {/* Reutilizando tipoContainer para exibir as fraquezas */}
+                      {pokemonDetalhesAPI.fraquezas.map((fraqueza: string) => (
+                        <View key={fraqueza} style={styles.fraquezaTag}>
+                          <Text style={styles.tipoTexto}>{fraqueza.trim()}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
                 <View style={styles.historicoContainer}>
                     <Text style={styles.historicoTitulo}>Histórico Médico</Text>
                     <ScrollView style={styles.historicoScroll}>
@@ -311,6 +347,23 @@ const styles = StyleSheet.create({
     color: cores.textoClaro,
     marginBottom: espacamento.s,
   },
+  tipoContainer: { // Reutilizado de espera.tsx
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: espacamento.s,
+    marginBottom: espacamento.m,
+  },
+  tipoTag: { // Reutilizado de espera.tsx
+    backgroundColor: cores.fundoEscuro,
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderRadius: bordas.raioPequeno,
+  },
+  tipoTexto: { // Reutilizado de espera.tsx
+    color: cores.textoSecundario,
+    fontSize: tipografia.tamanhos.pequeno,
+  },
   detalheContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -350,9 +403,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: cores.fundoSuperficie,
     borderRadius: bordas.raioGrande,
-    width: '90%',
-    maxHeight: '85%',
-    maxWidth: 500,
+    width: '95%',
+    maxHeight: '90%',
+    maxWidth: 600,
     ...sombras.sombraMedia,
     overflow: 'hidden',
     alignItems: 'center',
@@ -384,8 +437,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: espacamento.m,
     right: espacamento.m,
-    zIndex: 1,
-    padding: espacamento.s,
+    zIndex: 1, 
+    padding: espacamento.s, 
   },
   modalFechar: {
     fontFamily: tipografia.familia,
@@ -427,5 +480,31 @@ const styles = StyleSheet.create({
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.label,
     color: cores.textoClaro,
+  },
+  // Novos estilos para Fraquezas
+  fraquezasContainer: {
+    backgroundColor: cores.fundoEscuro,
+    borderRadius: bordas.raioPequeno,
+    padding: espacamento.m,
+    marginBottom: espacamento.l,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  fraquezasLabel: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.pequeno,
+    color: cores.textoSecundario,
+    marginBottom: espacamento.s,
+    textTransform: 'uppercase',
+  },
+  fraquezaTag: {
+    backgroundColor: cores.fundoEscuro, // Pode ser uma cor diferente para fraqueza se desejar
+    paddingHorizontal: espacamento.m,
+    paddingVertical: espacamento.xs,
+    borderRadius: bordas.raioPequeno,
+    marginRight: espacamento.s,
+    marginBottom: espacamento.s,
+    // Adicionar estilos de texto específicos se necessário
   },
 });
