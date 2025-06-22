@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Image, Dime
 import { useAuth } from "../context/AuthContext";
 import { estilosGlobais, cores, tipografia, espacamento, bordas, sombras, } from "../styles/estilosGlobais";
 import BotaoAcao from "../components/BotaoAcao";
+import Feather from "@expo/vector-icons/build/Feather";
 
 export default function LoginMedico() {
   const { login } = useAuth();
@@ -35,12 +36,12 @@ export default function LoginMedico() {
     <View style={estilosGlobais.containerCentralizado}>
       <View style={[styles.loginContainer, { flexDirection: eTelaLarga ? 'row' : 'column' }]}>
         <View style={styles.colunaEsquerda}>
-          
+
           <View style={styles.tituloContainer}>
             <Text style={styles.tituloPrincipal}>ÁREA DO</Text>
             <Text style={styles.subtituloPokemon}>Médico</Text>
           </View>
-          
+
           <TextInput
             style={estilosGlobais.campoTexto}
             placeholder="Usuário"
@@ -74,11 +75,11 @@ export default function LoginMedico() {
       <Modal transparent visible={modalErroVisivel} animationType="fade">
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalErroVisivel(false)}>
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
             <Text style={estilosGlobais.modalTitulo}>Atenção</Text>
             <Text style={estilosGlobais.modalTexto}>{mensagemErro}</Text>
-            <TouchableOpacity onPress={() => setModalErroVisivel(false)}>
-              <Text style={styles.modalFechar}>Fechar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -125,11 +126,11 @@ const styles = StyleSheet.create({
     lineHeight: 52,
     color: cores.primaria,
   },
-  modalFechar: {
-    fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.label,
-    color: cores.textoSecundario,
-    marginTop: 10,
-    textDecorationLine: "underline",
+  botaoFecharModal: {
+    position: 'absolute',
+    top: espacamento.m,
+    right: espacamento.m,
+    zIndex: 1,
+    padding: espacamento.s,
   },
 });

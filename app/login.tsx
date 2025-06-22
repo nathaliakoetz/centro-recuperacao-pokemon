@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { estilosGlobais, cores, tipografia, espacamento, bordas, sombras, } from "../styles/estilosGlobais";
 import BotaoAcao from "../components/BotaoAcao";
+import Feather from "@expo/vector-icons/build/Feather";
 
 export default function Login() {
   const { login } = useAuth();
@@ -36,13 +37,13 @@ export default function Login() {
     <View style={estilosGlobais.containerCentralizado}>
       <View style={[styles.loginContainer, { flexDirection: eTelaLarga ? 'row' : 'column' }]}>
         <View style={styles.colunaEsquerda}>
-          
+
           <View style={styles.tituloContainer}>
             <Text style={styles.tituloPrincipal}>CENTRO DE</Text>
             <Text style={styles.tituloPrincipal}>RECUPERAÇÃO</Text>
             <Text style={styles.subtituloPokemon}>Pokémon</Text>
           </View>
-          
+
           <TextInput
             style={estilosGlobais.campoTexto}
             placeholder="Usuário"
@@ -76,11 +77,11 @@ export default function Login() {
       <Modal transparent visible={modalErroVisivel} animationType="fade">
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity style={styles.botaoFecharModal} onPress={() => setModalErroVisivel(false)}>
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
             <Text style={estilosGlobais.modalTitulo}>Atenção</Text>
             <Text style={estilosGlobais.modalTexto}>{mensagemErro}</Text>
-            <TouchableOpacity onPress={() => setModalErroVisivel(false)}>
-              <Text style={styles.modalFechar}>Fechar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -127,11 +128,11 @@ const styles = StyleSheet.create({
     lineHeight: 52,
     color: cores.primaria,
   },
-  modalFechar: {
-    fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.label,
-    color: cores.textoSecundario,
-    marginTop: 10,
-    textDecorationLine: "underline",
+  botaoFecharModal: { 
+    position: 'absolute',
+    top: espacamento.m,
+    right: espacamento.m,
+    zIndex: 1,
+    padding: espacamento.s,
   },
 });
