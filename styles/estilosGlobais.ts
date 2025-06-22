@@ -213,6 +213,7 @@ modalConteudo: {
     fontWeight: tipografia.pesos.bold,
     color: cores.primaria,
     marginBottom: espacamento.m,
+    alignSelf: 'center',
   },
   modalTexto: {
     fontSize: tipografia.tamanhos.corpo,

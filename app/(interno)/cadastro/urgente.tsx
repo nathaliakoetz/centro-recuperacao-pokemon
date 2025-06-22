@@ -25,6 +25,7 @@ import { salvarPokemon, PokemonCadastro } from '../../../utils/salvarPokemon';
 import { buscarDadosPorEspecie, DadosPokemon } from '../../../utils/pokeapi';
 import axios from 'axios';
 import BotaoAcao from '../../../components/BotaoAcao';
+import Feather from '@expo/vector-icons/build/Feather';
 
 type ErrosCadastroUrgente = Partial<
   Pick<PokemonCadastro, 'nomeTreinador' | 'especiePokemon' | 'descricao'>
@@ -138,6 +139,10 @@ export default function CadastroUrgente() {
     }
   };
 
+  function setModalVisivel(arg0: boolean): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <View style={estilosGlobais.containerCentralizado}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -198,9 +203,8 @@ export default function CadastroUrgente() {
                     >
                       <Image
                         source={{
-                          uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-                            item.url.split('/')[6]
-                          }.png`,
+                          uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.url.split('/')[6]
+                            }.png`,
                         }}
                         style={styles.sugestaoImagem}
                       />
@@ -259,6 +263,12 @@ export default function CadastroUrgente() {
       >
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end', marginBottom: 0, marginRight: 8 }}
+              onPress={handleFecharModal}
+            >
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
             {cadastroSucesso && (
               <Image
                 source={require('../../../assets/sucesso.png')}
@@ -266,9 +276,6 @@ export default function CadastroUrgente() {
               />
             )}
             <Text style={estilosGlobais.modalTexto}>{modalMensagem}</Text>
-            <TouchableOpacity onPress={handleFecharModal}>
-              <Text style={styles.modalFechar}>Fechar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -368,13 +375,14 @@ const styles = StyleSheet.create({
   modalImagem: {
     width: 80,
     height: 80,
-    marginBottom: espacamento.l,
+    marginBottom: espacamento.xs,
+    alignSelf: 'center',
+    resizeMode: 'contain',
   },
   modalFechar: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.label,
     color: cores.primaria,
-    marginTop: espacamento.m,
-    textDecorationLine: 'underline',
+    padding: espacamento.s,
   },
 });

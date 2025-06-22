@@ -31,7 +31,7 @@ export default function ListaEspera() {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [pokemonNome, setPokemonNome] = useState<string | undefined>();
   const [termoBusca, setTermoBusca] = useState('');
-  
+
   const router = useRouter();
 
   const carregarPokemons = async () => {
@@ -45,17 +45,17 @@ export default function ListaEspera() {
       const lista: PokemonCadastro[] = resultados.flatMap(([, valor]) =>
         JSON.parse(valor || "[]")
       );
-  
+
       const filtrados = lista.filter(
         (p) => !p.emConsulta && !p.internado && !p.finalizado
       );
-  
+
       const ordenados = filtrados.sort((a, b) => {
         if (a.urgente && !b.urgente) return -1;
         if (!a.urgente && b.urgente) return 1;
         return 0;
       });
-  
+
       setPokemons(ordenados);
     } catch (err) {
       console.error("Erro ao carregar lista de espera:", err);
@@ -79,7 +79,7 @@ export default function ListaEspera() {
     );
 
     await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
-    
+
     await carregarPokemons();
 
     setPokemonNome(pokemon.nomePokemon);
@@ -117,14 +117,14 @@ export default function ListaEspera() {
             </View>
           ))}
         </View>
-        
+
         <View style={styles.detalheContainer}>
           <Feather name="user" size={14} color={cores.textoSecundario} />
           <Text style={styles.detalheCard} numberOfLines={1}>
             {item.nomeTreinador || '-'}
           </Text>
         </View>
-        
+
         <BotaoAcao
           onPress={() => enviarParaConsulta(item)}
           style={styles.botaoCard}
@@ -179,7 +179,7 @@ export default function ListaEspera() {
       ) : (
         <View style={styles.containerVazio}>
           <Image
-            source={require('../../../assets/espera.png')}
+            source={require('../../../assets/sucesso.png')}
             style={styles.imagemVazio}
           />
           <Text style={styles.tituloVazio}>
@@ -198,22 +198,16 @@ export default function ListaEspera() {
       <Modal transparent visible={modalVisivel} animationType="fade">
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end', marginBottom: 0, marginRight: 8 }}
+              onPress={() => setModalVisivel(false)}>
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
             <Text style={estilosGlobais.modalTitulo}>Sucesso!</Text>
             <Text style={estilosGlobais.modalTexto}>
               O Pokémon <Text style={{ fontWeight: 'bold' }}>{pokemonNome}</Text>{' '}
               foi enviado para a consulta.
             </Text>
-            <TouchableOpacity onPress={() => setModalVisivel(false)}>
-              <Text
-                style={{
-                  color: cores.primaria,
-                  textDecorationLine: 'underline',
-                  fontFamily: tipografia.familia,
-                }}
-              >
-                Fechar
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -370,13 +364,14 @@ const styles = StyleSheet.create({
   modalImagem: {
     width: 80,
     height: 80,
-    marginBottom: espacamento.l,
+    marginBottom: espacamento.xs,
+    alignSelf: 'center',
+    resizeMode: 'contain',
   },
   modalFechar: {
     fontFamily: tipografia.familia,
-    fontSize: tipografia.tamanhos.titulo,
+    fontSize: tipografia.tamanhos.label,
     color: cores.primaria,
-    marginTop: espacamento.m,
-    textDecorationLine: 'underline',
+    padding: espacamento.s,
   },
 });

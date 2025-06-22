@@ -7,6 +7,7 @@ import { salvarPokemon, PokemonCadastro } from '../../../utils/salvarPokemon';
 import { buscarDadosPorEspecie, DadosPokemon } from '../../../utils/pokeapi';
 import axios from 'axios';
 import BotaoAcao from '../../../components/BotaoAcao';
+import Feather from '@expo/vector-icons/build/Feather';
 
 type ErrosCadastro = Partial<
   Record<keyof Omit<PokemonCadastro, 'foiTroca' | 'urgente'>, string>
@@ -222,9 +223,20 @@ export default function Cadastro() {
         </View>
       </ScrollView>
 
-      <Modal visible={mostrarModal} transparent animationType="fade" onRequestClose={handleFecharModal}>
+      <Modal
+        visible={mostrarModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleFecharModal}
+      >
         <View style={estilosGlobais.modalFundo}>
           <View style={estilosGlobais.modalConteudo}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end', marginBottom: 0, marginRight: 8 }}
+              onPress={handleFecharModal}
+            >
+              <Feather name="x" size={24} color={cores.textoSecundario} />
+            </TouchableOpacity>
             {cadastroSucesso && (
               <Image
                 source={require('../../../assets/sucesso.png')}
@@ -232,9 +244,6 @@ export default function Cadastro() {
               />
             )}
             <Text style={estilosGlobais.modalTexto}>{modalMensagem}</Text>
-            <TouchableOpacity onPress={handleFecharModal}>
-              <Text style={styles.modalFechar}>Fechar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -384,15 +393,16 @@ const styles = StyleSheet.create({
     marginLeft: espacamento.s,
   },
   modalImagem: {
-    width: 100,
-    height: 100,
-    marginBottom: espacamento.l,
+    width: 80,
+    height: 80,
+    marginBottom: espacamento.xs,
+    alignSelf: 'center',
+    resizeMode: 'contain',
   },
   modalFechar: {
     fontFamily: tipografia.familia,
     fontSize: tipografia.tamanhos.label,
     color: cores.primaria,
-    marginTop: espacamento.m,
-    textDecorationLine: 'underline',
+    padding: espacamento.s,
   },
 });
