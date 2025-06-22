@@ -9,10 +9,26 @@ import {
   sombras,
 } from '../../../styles/estilosGlobais';
 import CardOpcao from '../../../components/CardOpcao';
+import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect } from 'react';
 
 export default function AreaInterna() {
-  const { usuario } = useLocalSearchParams();
   const router = useRouter();
+  const { usuario, logout } = useAuth();
+  const [dataHora, setDataHora] = useState('');
+
+  useEffect(() => {
+    const formatarDataHora = () => {
+      const agora = new Date();
+      const opcoesData = { day: 'numeric', month: 'long', year: 'numeric' } as const;
+      const dataFormatada = agora.toLocaleDateString('pt-BR', opcoesData);
+      const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      setDataHora(`${dataFormatada} - ${horaFormatada}`);
+    };
+    formatarDataHora();
+    const intervalId = setInterval(formatarDataHora, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const opcoes = [
     {
@@ -27,17 +43,13 @@ export default function AreaInterna() {
     },
   ];
 
-  const handleLogout = () => {
-    router.replace('/');
-  };
-
   return (
     <View style={estilosGlobais.containerCentralizado}>
       <View style={styles.cardPrincipal}>
-        
+
         <View style={styles.header}>
-          <Text style={styles.bemVindoTexto}>Olá, {usuario}!</Text>
-          <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.bemVindoTexto}>Bem vindo {usuario}!</Text>
+          <TouchableOpacity onPress={logout}>
             <Image
               source={require('../../../assets/sair.png')}
               style={styles.logoutIcon}
@@ -51,6 +63,7 @@ export default function AreaInterna() {
         />
 
         <Text style={styles.titulo}>Área de Cadastro</Text>
+        <Text style={styles.dataHoraTexto}>{dataHora}</Text>
 
         <Text style={styles.subtitulo}>
           Selecione uma das opções abaixo para prosseguir.
@@ -124,5 +137,12 @@ const styles = StyleSheet.create({
     minHeight: 0,
     paddingVertical: espacamento.l,
     marginBottom: espacamento.l,
+  },
+  dataHoraTexto: {
+    fontFamily: tipografia.familia,
+    fontSize: tipografia.tamanhos.label,
+    color: cores.textoSecundario,
+    marginBottom: espacamento.l,
+    textAlign: 'center',
   },
 });
