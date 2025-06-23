@@ -48,7 +48,7 @@ export default function AreaInterna() {
       <View style={styles.cardPrincipal}>
 
         <View style={styles.header}>
-          <Text style={styles.bemVindoTexto}>Bem vindo {usuario}!</Text>
+          <Text style={styles.bemVindoTexto}>Bem-vindo {usuario?.username}!</Text>
           <TouchableOpacity onPress={logout}>
             <Image
               source={require('../../../assets/sair.png')}
