@@ -40,7 +40,7 @@ export default function Medico() {
     <View style={estilosGlobais.containerCentralizado}>
       <View style={styles.cardPrincipal}>
         <View style={styles.header}>
-          <Text style={styles.bemVindoTexto}>Dr(a). {usuario}!</Text>
+          <Text style={styles.bemVindoTexto}>Dr(a). {usuario?.username}!</Text>
           <TouchableOpacity onPress={logout}>
             <Image
               source={require('../../../assets/sair.png')}
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     flexDirection: 'column',
-    
+
   },
   botaoOpcao: {
     flex: 0,

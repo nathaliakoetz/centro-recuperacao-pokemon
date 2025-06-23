@@ -42,13 +42,13 @@ export default function AreaInterna() {
       tipo: 'urgente' as const,
     },
   ];
-  
+
   return (
     <View style={estilosGlobais.containerCentralizado}>
       <View style={styles.cardPrincipal}>
 
         <View style={styles.header}>
-          <Text style={styles.bemVindoTexto}>Bem vindo {usuario}!</Text>
+          <Text style={styles.bemVindoTexto}>Bem-vindo {usuario?.username}!</Text>
           <TouchableOpacity onPress={logout}>
             <Image
               source={require('../../../assets/sair.png')}
