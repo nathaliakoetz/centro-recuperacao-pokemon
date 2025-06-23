@@ -42,7 +42,7 @@ export default function AreaInterna() {
       tipo: 'urgente' as const,
     },
   ];
-
+  
   return (
     <View style={estilosGlobais.containerCentralizado}>
       <View style={styles.cardPrincipal}>

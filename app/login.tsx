@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { estilosGlobais, cores, tipografia, espacamento, bordas, sombras, } from "../styles/estilosGlobais";
 import BotaoAcao from "../components/BotaoAcao";
 import Feather from "@expo/vector-icons/build/Feather";
+import { buscarUsuarios } from "@/utils/gerenciarUsuarios";
 
 export default function Login() {
   const { login } = useAuth();
@@ -22,11 +23,22 @@ export default function Login() {
     return () => subscription?.remove();
   }, []);
 
-  const verificarCredenciais = () => {
-    if (usuario === "admin" && senha === "1234") {
-      login(usuario);
+  const verificarCredenciais = async () => {
+    if (!usuario.trim() || !senha.trim()) {
+      setMensagemErro("Usuário e senha são obrigatórios.");
+      setModalErroVisivel(true);
+      return;
+    }
+
+    const usuariosCadastrados = await buscarUsuarios();
+    const usuarioEncontrado = usuariosCadastrados.find(
+      u => u.username.toLowerCase() === usuario.toLowerCase() && u.role === 'funcionario'
+    );
+
+    if (usuarioEncontrado && usuarioEncontrado.password === senha) {
+      login(usuarioEncontrado.username); // Login bem-sucedido
     } else {
-      setMensagemErro("Usuário ou senha inválidos.");
+      setMensagemErro("Usuário ou senha inválidos para a área de Cadastro.");
       setModalErroVisivel(true);
     }
   };

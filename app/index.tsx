@@ -1,12 +1,12 @@
 import { View, StyleSheet, Image, Text } from 'react-native';
 import BotaoLink from '../components/BotaoLink';
-import { 
-  estilosGlobais, 
-  espacamento, 
-  cores, 
-  tipografia, 
-  bordas, 
-  sombras 
+import {
+  estilosGlobais,
+  espacamento,
+  cores,
+  tipografia,
+  bordas,
+  sombras
 } from '../styles/estilosGlobais';
 
 export default function Home() {
@@ -26,12 +26,14 @@ export default function Home() {
         <Text style={styles.subtitulo}>
           Escolha seu tipo de acesso para continuar.
         </Text>
-        
+
         <View style={styles.botoesContainer}>
+          <BotaoLink href="/cadastrar-usuario" tipo="secundario" style={styles.botaoCustomizado}>
+            CADASTRAR NOVO USUÁRIO
+          </BotaoLink>
           <BotaoLink href="/login" style={styles.botaoCustomizado}>
             ÁREA CADASTRO
           </BotaoLink>
-          
           <BotaoLink href="/loginMedico" style={styles.botaoCustomizado}>
             ÁREA MÉDICA
           </BotaoLink>

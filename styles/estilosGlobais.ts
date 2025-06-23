@@ -90,6 +90,7 @@ export const estilosGlobais = StyleSheet.create({
     fontSize: tipografia.tamanhos.label,
     color: cores.textoSecundario,
     marginBottom: espacamento.xs,
+    alignSelf: "center",
   },
   textoNormal: {
     fontFamily: tipografia.familia,

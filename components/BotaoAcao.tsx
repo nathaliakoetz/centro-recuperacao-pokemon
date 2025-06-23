@@ -1,10 +1,10 @@
-import { Text, StyleProp, ViewStyle, Pressable, PressableProps, GestureResponderEvent, } from 'react-native';
+import { Text, StyleProp, ViewStyle, Pressable, PressableProps } from 'react-native';
 import { ReactNode } from 'react';
-import { estilosGlobais } from '../styles/estilosGlobais';
+import { estilosGlobais, cores } from '../styles/estilosGlobais';
 
 interface BotaoAcaoProps extends PressableProps {
   children: ReactNode;
-  tipo?: 'primario' | 'secundario';
+  tipo?: 'primario' | 'secundario' | 'urgente';
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
 }
@@ -17,10 +17,20 @@ export default function BotaoAcao({
   disabled,
   ...rest
 }: BotaoAcaoProps) {
-  const estiloDoBotao =
-    tipo === 'primario'
-      ? estilosGlobais.botaoBase
-      : estilosGlobais.botaoSecundario;
+  
+  const getEstiloDoBotao = () => {
+    switch (tipo) {
+      case 'secundario':
+        return estilosGlobais.botaoSecundario;
+      case 'urgente':
+        return { ...estilosGlobais.botaoBase, backgroundColor: cores.erro };
+      case 'primario':
+      default:
+        return estilosGlobais.botaoBase;
+    }
+  };
+
+  const estiloDoBotao = getEstiloDoBotao();
 
   return (
     <Pressable
