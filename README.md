@@ -72,11 +72,8 @@ O código-fonte está organizado nos seguintes diretórios principais:
 
 ## Credenciais para Teste
 
-  * **Usuário Funcionário (Cadastro):**
+  * **Admin para criar novos Usuários para acessar área de Cadastro ou Médico**
       * **Usuário:** `admin`
-      * **Senha:** `1234`
-  * **Usuário Médico:**
-      * **Usuário:** `medico`
       * **Senha:** `1234`
 
 ## Instalação e Execução
