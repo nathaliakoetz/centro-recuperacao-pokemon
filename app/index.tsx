@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
     ...sombras.sombraMedia,
   },
   logo: {
-    width: 450,
-    height: 450,
+    width: 320,
+    height: 320,
     resizeMode: 'contain',
     marginBottom: espacamento.m,
   },
