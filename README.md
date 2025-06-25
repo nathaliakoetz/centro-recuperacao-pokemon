@@ -1,4 +1,4 @@
-# Centro de Recuperação Pokémon
+# Centro de Recuperação Pokémon - Aplicação WEB
 
 Este projeto é um sistema de gerenciamento para um "Centro de Recuperação Pokémon", desenvolvido em **React Native** com **Expo**. O sistema foi criado para a disciplina de **Frameworks para Desenvolvimento Web**, ministrada pelo professor **Wagner Loch**.
 
@@ -96,14 +96,6 @@ Para configurar e rodar o projeto localmente:
     ```bash
     expo start
     ```
-    Isso irá abrir o Expo Developer Tools no seu navegador. Você pode escanear o QR code com o aplicativo Expo Go (Android) ou Câmera (iOS) para visualizar o aplicativo no seu dispositivo.
-
-### Outros Scripts
-
-  * `npm test`: Executa os testes com Jest.
-  * `npm run lint`: Executa o linter do Expo para verificar a qualidade do código.
-  * `npm run reset-project`: Script para limpar o cache do projeto.
-
 ## Desenvolvido Por:
 
 <a href="https://github.com/nathaliakoetz"><img src="https://github.com/nathaliakoetz.png" width="100" height="100"></a>
